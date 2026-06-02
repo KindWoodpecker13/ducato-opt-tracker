@@ -2,23 +2,22 @@ import streamlit as st
 import pandas as pd
 import os
 
-# --- Config pagina ---
+# ---------------------------------------------------------
+# CONFIGURAZIONE PAGINA
+# ---------------------------------------------------------
 st.set_page_config(page_title="Ducato OPT Checker (Beta)", page_icon="🚐")
-st.title("Ducato OPT Checker (Beta) 🚐")
-st.write("Versione beta per la lettura rapida degli OPT da griglia prodotto.")
-st.markdown("---")
 
-# --- CSS: sfondo blu sfocato (gradient + blur + vignettatura) ---
+# ---------------------------------------------------------
+# SFONDO BLU SFOCATO (VERSIONE STABILE)
+# ---------------------------------------------------------
 st.markdown(
     """
     <style>
 
-    /* Rimuove qualsiasi sfondo precedente */
     html, body, .stApp {
         background: none !important;
     }
 
-    /* Layer principale: sfondo blu sfocato */
     .stApp::before {
         content: "";
         position: fixed;
@@ -35,7 +34,6 @@ st.markdown(
         pointer-events: none;
     }
 
-    /* Vignettatura leggera per migliorare la leggibilità */
     .stApp::after {
         content: "";
         position: fixed;
@@ -49,13 +47,11 @@ st.markdown(
         pointer-events: none;
     }
 
-    /* Assicura che il contenuto sia sopra lo sfondo */
     .main > div[role="main"], .block-container {
         position: relative;
         z-index: 1;
     }
 
-    /* Card e box HTML leggibili */
     .stMarkdown div[style] {
         background: rgba(255,255,255,0.92) !important;
         border-radius: 6px;
@@ -66,16 +62,23 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- Nome del file CSV presente nella repository ---
+# ---------------------------------------------------------
+# TITOLO
+# ---------------------------------------------------------
+st.title("Ducato OPT Checker (Beta) 🚐")
+st.write("Versione beta per la lettura rapida degli OPT da griglia prodotto.")
+st.markdown("---")
+
+# ---------------------------------------------------------
+# CARICAMENTO CSV
+# ---------------------------------------------------------
 CSV_FILENAME = "griglia_prodotto.csv"
 
-# --- 1. Caricamento automatico del CSV dalla repository ---
-st.subheader("1. Database OPT (caricato da remoto)")
+st.subheader("1. Database OPT (caricato dalla repository)")
 
 df_opt = None
 if os.path.exists(CSV_FILENAME):
     try:
-        # Leggiamo tutto come stringhe per evitare float/NaN
         df_raw = pd.read_csv(
             CSV_FILENAME,
             header=None,
@@ -85,32 +88,26 @@ if os.path.exists(CSV_FILENAME):
             engine="python"
         )
 
-        # Assumiamo colonne: descr_it, descr_en, code
         df_raw = df_raw.rename(columns={0: "descr_it", 1: "descr_en", 2: "code"})
-
-        # Pulizia + normalizzazione a 3 caratteri (robusta contro float/NaN)
         df_raw["code"] = df_raw["code"].apply(lambda x: str(x).strip().upper().zfill(3))
         df_raw["descr_it"] = df_raw["descr_it"].astype(str).str.strip()
         df_raw["descr_en"] = df_raw["descr_en"].astype(str).str.strip()
-
-        # Rimuovi righe senza codice valido (es. stringhe vuote)
         df_raw = df_raw[df_raw["code"] != ""]
-
-        # Elimina duplicati
         df_opt = df_raw.drop_duplicates(subset=["code"]).reset_index(drop=True)
 
         st.success(f"Database OPT caricato automaticamente. Codici unici: {len(df_opt)}")
 
     except Exception as e:
         st.error(f"Errore nel leggere il file CSV '{CSV_FILENAME}': {e}")
-        df_opt = None
 else:
     st.error(f"File CSV non trovato nella repository: '{CSV_FILENAME}'.")
     st.info("Caricalo nella repo e riprova.")
 
 st.markdown("---")
 
-# --- 2. Input OPT vettura ---
+# ---------------------------------------------------------
+# INPUT CODICI
+# ---------------------------------------------------------
 st.subheader("2. Inserisci gli OPT della vettura")
 opt_input = st.text_area(
     "Incolla qui la stringa con i codici OPT (separati da spazio, virgola o a capo)",
@@ -120,7 +117,9 @@ opt_input = st.text_area(
 
 analyze_button = st.button("Analizza OPT")
 
-# --- 3. Mappa OPT critici per RFID / RdT ---
+# ---------------------------------------------------------
+# MAPPA OPT CRITICI
+# ---------------------------------------------------------
 opt_rfid_map = {
     "Ruote in lega": ["0R2", "1LR", "431", "404"],
     "Ruote in lamiera": ["03G", "5EV", "980"],
@@ -141,16 +140,16 @@ def find_opt_in_group(vehicle_codes, group_codes, df):
             found.append((code, row["descr_it"]))
     return found
 
-# --- 4. Logica di analisi ---
+# ---------------------------------------------------------
+# ANALISI
+# ---------------------------------------------------------
 if analyze_button:
     if df_opt is None:
-        st.error("Database non disponibile. Controlla che il file CSV sia presente nella repository.")
+        st.error("Database non disponibile.")
     elif not opt_input.strip():
         st.error("Inserisci almeno un codice OPT.")
     else:
         raw_codes = opt_input.replace(",", " ").replace(";", " ").split()
-
-        # Normalizzazione input utente (robusta)
         vehicle_codes = sorted(
             set(str(code).strip().upper().zfill(3) for code in raw_codes if str(code).strip())
         )
@@ -158,21 +157,19 @@ if analyze_button:
         st.write(f"Codici trovati nella stringa: **{len(vehicle_codes)}**")
 
         db_codes = set(df_opt["code"].unique())
-
         present = []
         missing = []
 
         for code in vehicle_codes:
             if code in db_codes:
                 row = df_opt[df_opt["code"] == code].iloc[0]
-                present.append({
-                    "code": code,
-                    "descr_it": row["descr_it"]
-                })
+                present.append({"code": code, "descr_it": row["descr_it"]})
             else:
                 missing.append(code)
 
-        # --- 4.1 Sezione RFID / RdT ---
+        # ---------------------------------------------------------
+        # RFID / RdT
+        # ---------------------------------------------------------
         st.markdown("## 🔧 OPT per RFID / RdT")
 
         for label, group_codes in opt_rfid_map.items():
@@ -180,7 +177,6 @@ if analyze_button:
 
             if found:
                 lines = "; ".join(f"{c} — {d}" for c, d in found)
-                # uso entità HTML per la spunta (evita problemi di encoding)
                 st.markdown(
                     f"""
                     <div style='padding:8px 12px; border:1px solid #d0d0d0; border-radius:6px; margin-bottom:6px;'>
@@ -201,7 +197,9 @@ if analyze_button:
                     unsafe_allow_html=True,
                 )
 
-        # --- 4.2 OPT presenti ---
+        # ---------------------------------------------------------
+        # OPT PRESENTI
+        # ---------------------------------------------------------
         st.markdown("## 📦 OPT presenti in vettura")
         if present:
             for item in present:
@@ -214,16 +212,21 @@ if analyze_button:
                     unsafe_allow_html=True,
                 )
         else:
-            st.write("_Nessun codice della vettura è presente nel database._")
+            st.write("_Nessun codice presente nel database._")
 
-        # --- 4.3 OPT non trovati ---
+        # ---------------------------------------------------------
+        # OPT NON TROVATI
+        # ---------------------------------------------------------
         if missing:
             with st.expander("OPT non trovati nel database"):
                 st.write(", ".join(missing))
 
-        # --- 4.4 Output sintetico ---
+        # ---------------------------------------------------------
+        # OUTPUT SINTETICO
+        # ---------------------------------------------------------
         output_lines = []
         output_lines.append("🔧 OPT per RFID / RdT")
+
         for label, group_codes in opt_rfid_map.items():
             found = find_opt_in_group(vehicle_codes, group_codes, df_opt)
             if found:
