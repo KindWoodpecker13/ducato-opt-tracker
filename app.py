@@ -116,7 +116,7 @@ if analyze_button:
                     st.markdown(f"**{label}:** ❌ Assente")
 
         # --- 4.2 Sezione OPT presenti (solo quelli trovati) ---
-        st.markdown("## 📦 OPT presenti nel database")
+        st.markdown("## 📦 OPT presenti in vettura")
         if present:
             for item in present:
                 st.markdown(f"- **{item['code']}** — {item['descr_it']}")
