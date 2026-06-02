@@ -7,14 +7,39 @@ st.set_page_config(page_title="Ducato OPT Checker (Beta)", page_icon="🚐")
 st.markdown(
     """
     <style>
-    .stApp {
-        background-image:
-            linear-gradient(rgba(255,255,255,0.92), rgba(255,255,255,0.92)),
-            url("sfondo.png");
+    /* layer sfondo sfocato posizionato dietro tutto il contenuto */
+    .stApp::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("sfondo.png");
         background-size: cover;
         background-position: center;
-        background-attachment: fixed;
         background-repeat: no-repeat;
+        filter: blur(6px) brightness(0.65);
+        transform: scale(1.03);
+        z-index: -1;
+    }
+
+    /* leggero velo sopra lo sfondo per garantire leggibilità */
+    .stApp::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: rgba(255,255,255,0.12); /* modifica opacità qui */
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    /* contenuto principale sopra i layer di sfondo */
+    .main > div[role="main"] {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* piccole regolazioni per i card HTML inseriti con unsafe_allow_html */
+    .stMarkdown div[style] {
+        background: rgba(255,255,255,0.85);
     }
     </style>
     """,
