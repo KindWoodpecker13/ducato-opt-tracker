@@ -2,6 +2,17 @@ import streamlit as st
 import pandas as pd
 import os
 
+IMAGE_NAME = "sfondo.jpg"  # usa il nome che pensi sia corretto
+st.write("Working dir:", os.getcwd())
+st.write("File esiste:", os.path.exists(IMAGE_NAME))
+st.write("Files nella cartella:", os.listdir(".")[:50])
+
+if os.path.exists(IMAGE_NAME):
+    st.image(IMAGE_NAME, caption="Test immagine (sfondo)", use_column_width=True)
+else:
+    st.error(f"Immagine non trovata: {IMAGE_NAME}")
+
+
 # --- Config pagina ---
 st.set_page_config(page_title="Ducato OPT Checker (Beta)", page_icon="🚐")
 st.title("Ducato OPT Checker (Beta) 🚐")
