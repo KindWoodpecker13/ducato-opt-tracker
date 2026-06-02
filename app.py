@@ -8,7 +8,7 @@ st.title("Ducato OPT Checker (Beta) 🚐")
 st.write("Versione beta per la lettura rapida degli OPT da griglia prodotto.")
 st.markdown("---")
 
-# --- Sfondo (Soft) ---
+# --- Sfondo (Blur moderato) ---
 IMAGE_NAME = "sfondo.jpg"  # assicurati che il file sia nella stessa cartella di app.py
 
 st.markdown(
@@ -22,20 +22,23 @@ st.markdown(
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        filter: blur(4px) brightness(0.85);
-        transform: scale(1.02);
+        filter: blur(6px) brightness(0.75);
+        transform: scale(1.03);
         z-index: -1;
     }}
     .stApp::after {{
         content: "";
         position: fixed;
         inset: 0;
-        background: rgba(255,255,255,0.06);
+        background: rgba(255,255,255,0.08);
         z-index: 0;
         pointer-events: none;
     }}
     .main > div[role="main"] {{ position: relative; z-index: 1; }}
-    /* Mantieni le card leggibili ma non completamente bianche */
+    /* Vignettatura leggera per focalizzare il centro */
+    .stApp::after {{
+        background: radial-gradient(ellipse at center, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.12) 100%);
+    }}
     .stMarkdown div[style] {{ background: rgba(255,255,255,0.92); }}
     </style>
     """,
