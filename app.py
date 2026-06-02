@@ -51,7 +51,7 @@ analyze_button = st.button("Analizza OPT")
 
 # --- 3. Mappa OPT critici per RFID / RdT (modificabile) ---
 opt_rfid_map = {
-    "Ruote in lega": ["0R2", "1LR", "431", "5EV", "404"],
+    "Ruote in lega": ["0R2", "1LR", "431", "404"],
     "Ruote in lamiera": ["03G", "5EV", "980"],
     "Autoradio": ["1RB", "2PX", "2PZ", "CMX", "CMY"],
     "Kit gonfiaggio (Fix&Go)": ["499"],
