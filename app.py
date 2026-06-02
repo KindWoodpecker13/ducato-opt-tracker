@@ -2,23 +2,31 @@ import streamlit as st
 import pandas as pd
 import os
 
-IMAGE_NAME = "sfondo.jpg"  # usa esattamente il nome che vedi in os.listdir()
+# --- Config pagina ---
+st.set_page_config(page_title="Ducato OPT Checker (Beta)", page_icon="🚐")
+st.title("Ducato OPT Checker (Beta) 🚐")
+st.write("Versione beta per la lettura rapida degli OPT da griglia prodotto.")
+st.markdown("---")
 
-# Test rapido (opzionale, lascia per debug e poi rimuovi)
+# --- Nome immagine di sfondo (usa il file presente nella stessa cartella) ---
+IMAGE_NAME = "sfondo.jpg"  # assicurati che il file esista con questo nome (case sensitive)
+
+# --- Debug rapido (opzionale: puoi rimuovere queste righe dopo il test) ---
 st.write("Working dir:", os.getcwd())
 st.write("File esiste:", os.path.exists(IMAGE_NAME))
 st.write("Files nella cartella:", os.listdir(".")[:50])
 
-# Mostra l'immagine per verificare che Streamlit la legga
+# --- Mostra immagine di test (opzionale) ---
 if os.path.exists(IMAGE_NAME):
     st.image(IMAGE_NAME, caption="Test immagine (sfondo)", use_column_width=True)
 else:
     st.warning(f"Immagine non trovata: {IMAGE_NAME}")
 
-# CSS per sfondo visibile, sfocato e non coprente
+# --- CSS per sfondo visibile, sfocato e leggibile ---
 st.markdown(
     f"""
     <style>
+    /* layer sfondo sfocato posizionato dietro tutto il contenuto */
     .stApp::before {{
         content: "";
         position: fixed;
@@ -32,6 +40,7 @@ st.markdown(
         z-index: -1;
     }}
 
+    /* leggero velo sopra lo sfondo per garantire leggibilità */
     .stApp::after {{
         content: "";
         position: fixed;
@@ -41,6 +50,7 @@ st.markdown(
         pointer-events: none;
     }}
 
+    /* contenuto principale sopra i layer di sfondo */
     .main > div[role="main"] {{
         position: relative;
         z-index: 1;
@@ -51,12 +61,11 @@ st.markdown(
         background: rgba(255,255,255,0.9);
     }}
     </style>
-    "",
+    """,
     unsafe_allow_html=True
 )
 
-# --- Config pagina ---
-st.set_page_config(page_title="Ducato OPT Checker (Beta)", page_icon="🚐")
+st.markdown("---")
 
 # --- Nome del file CSV presente nella repository ---
 CSV_FILENAME = "griglia_prodotto.csv"
@@ -67,6 +76,7 @@ st.subheader("1. Database OPT (caricato dalla repository)")
 df_opt = None
 if os.path.exists(CSV_FILENAME):
     try:
+        # Leggiamo tutto come stringhe per evitare float/NaN
         df_raw = pd.read_csv(
             CSV_FILENAME,
             header=None,
@@ -76,16 +86,15 @@ if os.path.exists(CSV_FILENAME):
             engine="python"
         )
 
+        # Assumiamo colonne: descr_it, descr_en, code
         df_raw = df_raw.rename(columns={0: "descr_it", 1: "descr_en", 2: "code"})
 
-        # Pulizia + normalizzazione a 3 caratteri
-        df_raw["code"] = df_raw["code"].apply(
-            lambda x: str(x).strip().upper().zfill(3)
-        )
+        # Pulizia + normalizzazione a 3 caratteri (robusta contro float/NaN)
+        df_raw["code"] = df_raw["code"].apply(lambda x: str(x).strip().upper().zfill(3))
         df_raw["descr_it"] = df_raw["descr_it"].astype(str).str.strip()
         df_raw["descr_en"] = df_raw["descr_en"].astype(str).str.strip()
 
-        # Rimuovi righe senza codice valido
+        # Rimuovi righe senza codice valido (es. stringhe vuote)
         df_raw = df_raw[df_raw["code"] != ""]
 
         # Elimina duplicati
@@ -126,8 +135,10 @@ def find_opt_in_group(vehicle_codes, group_codes, df):
     if df is None:
         return found
     db_codes_set = set(df["code"])
+    # normalizziamo group_codes per sicurezza (ma dovrebbero già essere a 3 char)
+    normalized_group = [str(c).strip().upper().zfill(3) for c in group_codes]
     for code in vehicle_codes:
-        if code in group_codes and code in db_codes_set:
+        if code in normalized_group and code in db_codes_set:
             row = df[df["code"] == code].iloc[0]
             found.append((code, row["descr_it"]))
     return found
@@ -141,7 +152,7 @@ if analyze_button:
     else:
         raw_codes = opt_input.replace(",", " ").replace(";", " ").split()
 
-        # Normalizzazione input utente
+        # Normalizzazione input utente (robusta)
         vehicle_codes = sorted(
             set(str(code).strip().upper().zfill(3) for code in raw_codes if str(code).strip())
         )
@@ -171,11 +182,12 @@ if analyze_button:
 
             if found:
                 lines = "; ".join(f"{c} — {d}" for c, d in found)
+                # uso entità HTML per la spunta (evita problemi di encoding)
                 st.markdown(
                     f"""
                     <div style='padding:8px 12px; border:1px solid #d0d0d0; border-radius:6px; margin-bottom:6px;'>
                         <b>{label}</b><br>
-                        <span style='color:green; font-weight:bold;'>✔ Presente</span> — {lines}
+                        <span style='color:green; font-weight:bold;'>&#10004; Presente</span> — {lines}
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -185,7 +197,7 @@ if analyze_button:
                     f"""
                     <div style='padding:8px 12px; border:1px solid #d0d0d0; border-radius:6px; margin-bottom:6px;'>
                         <b>{label}</b><br>
-                        <span style='color:red; font-weight:bold;'>✘ Assente</span>
+                        <span style='color:red; font-weight:bold;'>&#10008; Assente</span>
                     </div>
                     """,
                     unsafe_allow_html=True,
