@@ -12,7 +12,7 @@ st.markdown(
         content: "";
         position: fixed;
         inset: 0;
-        background-image: url("sfondo.png");
+        background-image: url("sfondo.jpg");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
