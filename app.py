@@ -8,65 +8,6 @@ st.title("Ducato OPT Checker (Beta) 🚐")
 st.write("Versione beta per la lettura rapida degli OPT da griglia prodotto.")
 st.markdown("---")
 
-# --- Nome immagine di sfondo (usa il file presente nella stessa cartella) ---
-IMAGE_NAME = "sfondo.jpg"  # assicurati che il file esista con questo nome (case sensitive)
-
-# --- Debug rapido (opzionale: puoi rimuovere queste righe dopo il test) ---
-st.write("Working dir:", os.getcwd())
-st.write("File esiste:", os.path.exists(IMAGE_NAME))
-st.write("Files nella cartella:", os.listdir(".")[:50])
-
-# --- Mostra immagine di test (opzionale) ---
-if os.path.exists(IMAGE_NAME):
-    st.image(IMAGE_NAME, caption="Test immagine (sfondo)", use_column_width=True)
-else:
-    st.warning(f"Immagine non trovata: {IMAGE_NAME}")
-
-# --- CSS per sfondo visibile, sfocato e leggibile ---
-st.markdown(
-    f"""
-    <style>
-    /* layer sfondo sfocato posizionato dietro tutto il contenuto */
-    .stApp::before {{
-        content: "";
-        position: fixed;
-        inset: 0;
-        background-image: url("{IMAGE_NAME}");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        filter: blur(6px) brightness(0.65);
-        transform: scale(1.03);
-        z-index: -1;
-    }}
-
-    /* leggero velo sopra lo sfondo per garantire leggibilità */
-    .stApp::after {{
-        content: "";
-        position: fixed;
-        inset: 0;
-        background: rgba(255,255,255,0.08);
-        z-index: 0;
-        pointer-events: none;
-    }}
-
-    /* contenuto principale sopra i layer di sfondo */
-    .main > div[role="main"] {{
-        position: relative;
-        z-index: 1;
-    }}
-
-    /* Mantieni le card leggibili ma non completamente bianche */
-    .stMarkdown div[style] {{
-        background: rgba(255,255,255,0.9);
-    }}
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-st.markdown("---")
-
 # --- Nome del file CSV presente nella repository ---
 CSV_FILENAME = "griglia_prodotto.csv"
 
@@ -135,7 +76,6 @@ def find_opt_in_group(vehicle_codes, group_codes, df):
     if df is None:
         return found
     db_codes_set = set(df["code"])
-    # normalizziamo group_codes per sicurezza (ma dovrebbero già essere a 3 char)
     normalized_group = [str(c).strip().upper().zfill(3) for c in group_codes]
     for code in vehicle_codes:
         if code in normalized_group and code in db_codes_set:
