@@ -2,6 +2,11 @@ import streamlit as st
 import pandas as pd
 import os
 
+IMAGE_NAME = "sfondo.jpg"  # sostituisci con il nome del file
+st.write("Working dir:", os.getcwd())
+st.write("File esiste:", os.path.exists(IMAGE_NAME))
+st.write("Files nella cartella:", os.listdir(".")[:50])
+
 # --- Config pagina ---
 st.set_page_config(page_title="Ducato OPT Checker (Beta)", page_icon="🚐")
 st.markdown(
