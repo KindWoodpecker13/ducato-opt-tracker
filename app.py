@@ -67,7 +67,7 @@ st.markdown(
 CSV_FILENAME = "griglia_prodotto.csv"
 
 # --- 1. Caricamento automatico del CSV dalla repository ---
-st.subheader("1. Database OPT (caricato dalla repository)")
+st.subheader("1. Database OPT (caricato da remoto)")
 
 df_opt = None
 if os.path.exists(CSV_FILENAME):
