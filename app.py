@@ -7,9 +7,7 @@ import os
 # ---------------------------------------------------------
 st.set_page_config(page_title="Ducato OPT Checker (Beta)", page_icon="🚐")
 
-# ---------------------------------------------------------
 # SFONDO BLU SFOCATO (VERSIONE STABILE)
-# ---------------------------------------------------------
 st.markdown(
     """
     <style>
@@ -18,6 +16,7 @@ st.markdown(
         background: none !important;
     }
 
+    /* Sfondo blu sfocato */
     .stApp::before {
         content: "";
         position: fixed;
@@ -34,33 +33,38 @@ st.markdown(
         pointer-events: none;
     }
 
+    /* Vignettatura leggera */
     .stApp::after {
         content: "";
         position: fixed;
         inset: 0;
         background: radial-gradient(
             ellipse at center,
-            rgba(255,255,255,0.03) 0%,
+            rgba(255,255,255,0.02) 0%,
             rgba(0,0,0,0.18) 100%
         );
         z-index: -998;
         pointer-events: none;
     }
 
+    /* Contenuto sopra lo sfondo */
     .main > div[role="main"], .block-container {
         position: relative;
         z-index: 1;
     }
 
+    /* RIMOSSE le card bianche */
     .stMarkdown div[style] {
-        background: rgba(255,255,255,0.92) !important;
-        border-radius: 6px;
+        background: none !important;
+        border: none !important;
+        padding: 0 !important;
     }
 
     </style>
     """,
     unsafe_allow_html=True
 )
+
 
 # ---------------------------------------------------------
 # TITOLO
