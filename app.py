@@ -9,7 +9,7 @@ st.markdown(
     <style>
     .stApp {
         background-image:
-            linear-gradient(rgba(255,255,255,0.78), rgba(255,255,255,0.78)),
+            linear-gradient(rgba(255,255,255,0.92), rgba(255,255,255,0.92)),
             url("sfondo.png");
         background-size: cover;
         background-position: center;
