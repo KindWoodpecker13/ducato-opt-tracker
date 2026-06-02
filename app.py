@@ -63,8 +63,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.markdown("---")
-
 # --- Nome del file CSV presente nella repository ---
 CSV_FILENAME = "griglia_prodotto.csv"
 
