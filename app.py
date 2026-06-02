@@ -12,52 +12,55 @@ st.markdown("---")
 st.markdown(
     """
     <style>
-    /* reset fallback */
-    html, body, .stApp { background: none !important; }
 
-    /* layer sfondo blu sfocato dietro tutto il contenuto */
+    /* Rimuove qualsiasi sfondo precedente */
+    html, body, .stApp {
+        background: none !important;
+    }
+
+    /* Layer principale: sfondo blu sfocato */
     .stApp::before {
         content: "";
         position: fixed;
-        top: 0; right: 0; bottom: 0; left: 0;
-        background: linear-gradient(135deg, #071029 0%, #0f2a4a 30%, #1e3a8a 60%, #4f7bd6 100%);
+        inset: 0;
+        background: linear-gradient(135deg,
+            #0a1a33 0%,
+            #0f2a4a 30%,
+            #1e3a8a 60%,
+            #4f7bd6 100%
+        );
         filter: blur(8px) brightness(0.88);
         transform: scale(1.03);
         z-index: -999;
         pointer-events: none;
     }
 
-    /* overlay leggero per migliorare contrasto testo */
+    /* Vignettatura leggera per migliorare la leggibilità */
     .stApp::after {
         content: "";
         position: fixed;
-        top: 0; right: 0; bottom: 0; left: 0;
-        background: radial-gradient(ellipse at center, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.18) 100%);
+        inset: 0;
+        background: radial-gradient(
+            ellipse at center,
+            rgba(255,255,255,0.03) 0%,
+            rgba(0,0,0,0.18) 100%
+        );
         z-index: -998;
         pointer-events: none;
     }
 
-    /* assicuriamo che il contenuto sia sopra i layer */
+    /* Assicura che il contenuto sia sopra lo sfondo */
     .main > div[role="main"], .block-container {
         position: relative;
         z-index: 1;
     }
 
-    /* card e markdown leggibili ma non completamente bianchi */
+    /* Card e box HTML leggibili */
     .stMarkdown div[style] {
         background: rgba(255,255,255,0.92) !important;
+        border-radius: 6px;
     }
 
-    /* piccole ottimizzazioni responsive */
-    @media (max-width: 600px) {
-        .stApp::before {
-            filter: blur(6px) brightness(0.92);
-            transform: scale(1.01);
-        }
-        .stApp::after {
-            background: radial-gradient(ellipse at center, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.12) 100%);
-        }
-    }
     </style>
     """,
     unsafe_allow_html=True
