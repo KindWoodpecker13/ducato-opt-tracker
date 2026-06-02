@@ -96,16 +96,17 @@ if analyze_button:
 
         # --- 4.1 Sezione speciale RFID / RdT ---
         st.markdown("## 🔧 OPT per RFID / RdT")
-
+        
         for label, group_codes in opt_rfid_map.items():
             found = find_opt_in_group(vehicle_codes, group_codes, df_opt)
+        
             if found:
                 lines = "; ".join(f"{c} — {d}" for c, d in found)
                 st.markdown(
                     f"""
-                    <div style='padding:6px 10px; border:1px solid #d4edda; border-radius:6px; background-color:#f6fffa; margin-bottom:6px;'>
+                    <div style='padding:8px 12px; border:1px solid #d0d0d0; border-radius:6px; margin-bottom:6px;'>
                         <b>{label}</b><br>
-                        <span style='color:green; font-weight:bold;'>✅ Presente</span> — {lines}
+                        <span style='color:green; font-weight:bold;'>✔ Presente</span> — {lines}
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -113,9 +114,9 @@ if analyze_button:
             else:
                 st.markdown(
                     f"""
-                    <div style='padding:6px 10px; border:1px solid #f8d7da; border-radius:6px; background-color:#fff5f5; margin-bottom:6px;'>
+                    <div style='padding:8px 12px; border:1px solid #d0d0d0; border-radius:6px; margin-bottom:6px;'>
                         <b>{label}</b><br>
-                        <span style='color:red; font-weight:bold;'>❌ Assente</span>
+                        <span style='color:red; font-weight:bold;'>✘ Assente</span>
                     </div>
                     """,
                     unsafe_allow_html=True,
