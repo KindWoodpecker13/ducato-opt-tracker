@@ -2,17 +2,6 @@ import streamlit as st
 import pandas as pd
 import os
 
-IMAGE_NAME = "sfondo.jpg"  # usa il nome che pensi sia corretto
-st.write("Working dir:", os.getcwd())
-st.write("File esiste:", os.path.exists(IMAGE_NAME))
-st.write("Files nella cartella:", os.listdir(".")[:50])
-
-if os.path.exists(IMAGE_NAME):
-    st.image(IMAGE_NAME, caption="Test immagine (sfondo)", use_column_width=True)
-else:
-    st.error(f"Immagine non trovata: {IMAGE_NAME}")
-
-
 # --- Config pagina ---
 st.set_page_config(page_title="Ducato OPT Checker (Beta)", page_icon="🚐")
 st.title("Ducato OPT Checker (Beta) 🚐")
@@ -20,37 +9,64 @@ st.write("Versione beta per la lettura rapida degli OPT da griglia prodotto.")
 st.markdown("---")
 
 # --- Sfondo (Blur moderato) ---
-IMAGE_NAME = "sfondo.jpg"  # assicurati che il file sia nella stessa cartella di app.py
+IMAGE_NAME = "sfondo.jpg"
 
 st.markdown(
     f"""
     <style>
+    /* fallback su html/body per assicurare che l'immagine sia richiesta */
+    html, body {{
+        background: none !important;
+    }}
+
+    /* background diretto su .stApp (fallback) */
+    .stApp {{
+        background: none !important;
+    }}
+
+    /* layer principale dietro tutto il contenuto */
     .stApp::before {{
         content: "";
-        position: fixed;
-        inset: 0;
-        background-image: url("{IMAGE_NAME}");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        filter: blur(6px) brightness(0.75);
-        transform: scale(1.03);
-        z-index: -1;
+        position: fixed !important;
+        top: 0; right: 0; bottom: 0; left: 0;
+        background-image: url("{IMAGE_NAME}") !important;
+        background-size: cover !important;
+        background-position: center center !important;
+        background-repeat: no-repeat !important;
+        filter: blur(6px) brightness(0.78) !important;
+        transform: scale(1.03) !important;
+        z-index: -999 !important;
+        pointer-events: none !important;
     }}
+
+    /* overlay/vignettatura leggera per contrasto */
     .stApp::after {{
         content: "";
-        position: fixed;
-        inset: 0;
-        background: rgba(255,255,255,0.08);
-        z-index: 0;
-        pointer-events: none;
+        position: fixed !important;
+        top: 0; right: 0; bottom: 0; left: 0;
+        background: radial-gradient(ellipse at center, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.12) 100%) !important;
+        z-index: -998 !important;
+        pointer-events: none !important;
     }}
-    .main > div[role="main"] {{ position: relative; z-index: 1; }}
-    /* Vignettatura leggera per focalizzare il centro */
-    .stApp::after {{
-        background: radial-gradient(ellipse at center, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.12) 100%);
+
+    /* assicuriamo che il contenuto sia sopra i layer */
+    .main > div[role="main"], .block-container {{
+        position: relative !important;
+        z-index: 1 !important;
     }}
-    .stMarkdown div[style] {{ background: rgba(255,255,255,0.92); }}
+
+    /* protezione per card/markdown */
+    .stMarkdown div[style] {{
+        background: rgba(255,255,255,0.92) !important;
+    }}
+
+    /* mobile: carica immagine più piccola se vuoi (opzionale) */
+    @media (max-width: 600px) {{
+        .stApp::before {{
+            filter: blur(4px) brightness(0.85) !important;
+            transform: scale(1.01) !important;
+        }}
+    }}
     </style>
     """,
     unsafe_allow_html=True
