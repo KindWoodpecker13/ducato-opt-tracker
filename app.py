@@ -8,65 +8,56 @@ st.title("Ducato OPT Checker (Beta) 🚐")
 st.write("Versione beta per la lettura rapida degli OPT da griglia prodotto.")
 st.markdown("---")
 
-# --- Sfondo (Blur moderato) ---
-IMAGE_NAME = "sfondo.jpg"
-
+# --- CSS: sfondo blu sfocato (gradient + blur + vignettatura) ---
 st.markdown(
-    f"""
+    """
     <style>
-    /* fallback su html/body per assicurare che l'immagine sia richiesta */
-    html, body {{
-        background: none !important;
-    }}
+    /* reset fallback */
+    html, body, .stApp { background: none !important; }
 
-    /* background diretto su .stApp (fallback) */
-    .stApp {{
-        background: none !important;
-    }}
-
-    /* layer principale dietro tutto il contenuto */
-    .stApp::before {{
+    /* layer sfondo blu sfocato dietro tutto il contenuto */
+    .stApp::before {
         content: "";
-        position: fixed !important;
+        position: fixed;
         top: 0; right: 0; bottom: 0; left: 0;
-        background-image: url("{IMAGE_NAME}") !important;
-        background-size: cover !important;
-        background-position: center center !important;
-        background-repeat: no-repeat !important;
-        filter: blur(6px) brightness(0.78) !important;
-        transform: scale(1.03) !important;
-        z-index: -999 !important;
-        pointer-events: none !important;
-    }}
+        background: linear-gradient(135deg, #071029 0%, #0f2a4a 30%, #1e3a8a 60%, #4f7bd6 100%);
+        filter: blur(8px) brightness(0.88);
+        transform: scale(1.03);
+        z-index: -999;
+        pointer-events: none;
+    }
 
-    /* overlay/vignettatura leggera per contrasto */
-    .stApp::after {{
+    /* overlay leggero per migliorare contrasto testo */
+    .stApp::after {
         content: "";
-        position: fixed !important;
+        position: fixed;
         top: 0; right: 0; bottom: 0; left: 0;
-        background: radial-gradient(ellipse at center, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.12) 100%) !important;
-        z-index: -998 !important;
-        pointer-events: none !important;
-    }}
+        background: radial-gradient(ellipse at center, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.18) 100%);
+        z-index: -998;
+        pointer-events: none;
+    }
 
     /* assicuriamo che il contenuto sia sopra i layer */
-    .main > div[role="main"], .block-container {{
-        position: relative !important;
-        z-index: 1 !important;
-    }}
+    .main > div[role="main"], .block-container {
+        position: relative;
+        z-index: 1;
+    }
 
-    /* protezione per card/markdown */
-    .stMarkdown div[style] {{
+    /* card e markdown leggibili ma non completamente bianchi */
+    .stMarkdown div[style] {
         background: rgba(255,255,255,0.92) !important;
-    }}
+    }
 
-    /* mobile: carica immagine più piccola se vuoi (opzionale) */
-    @media (max-width: 600px) {{
-        .stApp::before {{
-            filter: blur(4px) brightness(0.85) !important;
-            transform: scale(1.01) !important;
-        }}
-    }}
+    /* piccole ottimizzazioni responsive */
+    @media (max-width: 600px) {
+        .stApp::before {
+            filter: blur(6px) brightness(0.92);
+            transform: scale(1.01);
+        }
+        .stApp::after {
+            background: radial-gradient(ellipse at center, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.12) 100%);
+        }
+    }
     </style>
     """,
     unsafe_allow_html=True
@@ -83,6 +74,7 @@ st.subheader("1. Database OPT (caricato dalla repository)")
 df_opt = None
 if os.path.exists(CSV_FILENAME):
     try:
+        # Leggiamo tutto come stringhe per evitare float/NaN
         df_raw = pd.read_csv(
             CSV_FILENAME,
             header=None,
@@ -91,13 +83,23 @@ if os.path.exists(CSV_FILENAME):
             encoding="utf-8",
             engine="python"
         )
+
+        # Assumiamo colonne: descr_it, descr_en, code
         df_raw = df_raw.rename(columns={0: "descr_it", 1: "descr_en", 2: "code"})
+
+        # Pulizia + normalizzazione a 3 caratteri (robusta contro float/NaN)
         df_raw["code"] = df_raw["code"].apply(lambda x: str(x).strip().upper().zfill(3))
         df_raw["descr_it"] = df_raw["descr_it"].astype(str).str.strip()
         df_raw["descr_en"] = df_raw["descr_en"].astype(str).str.strip()
+
+        # Rimuovi righe senza codice valido (es. stringhe vuote)
         df_raw = df_raw[df_raw["code"] != ""]
+
+        # Elimina duplicati
         df_opt = df_raw.drop_duplicates(subset=["code"]).reset_index(drop=True)
+
         st.success(f"Database OPT caricato automaticamente. Codici unici: {len(df_opt)}")
+
     except Exception as e:
         st.error(f"Errore nel leggere il file CSV '{CSV_FILENAME}': {e}")
         df_opt = None
@@ -117,7 +119,7 @@ opt_input = st.text_area(
 
 analyze_button = st.button("Analizza OPT")
 
-# --- 3. Mappa OPT critici per RFID RdT ---
+# --- 3. Mappa OPT critici per RFID / RdT ---
 opt_rfid_map = {
     "Ruote in lega": ["0R2", "1LR", "431", "404"],
     "Ruote in lamiera": ["03G", "5EV", "980"],
@@ -146,25 +148,38 @@ if analyze_button:
         st.error("Inserisci almeno un codice OPT.")
     else:
         raw_codes = opt_input.replace(",", " ").replace(";", " ").split()
+
+        # Normalizzazione input utente (robusta)
         vehicle_codes = sorted(
             set(str(code).strip().upper().zfill(3) for code in raw_codes if str(code).strip())
         )
+
         st.write(f"Codici trovati nella stringa: **{len(vehicle_codes)}**")
+
         db_codes = set(df_opt["code"].unique())
+
         present = []
         missing = []
+
         for code in vehicle_codes:
             if code in db_codes:
                 row = df_opt[df_opt["code"] == code].iloc[0]
-                present.append({"code": code, "descr_it": row["descr_it"]})
+                present.append({
+                    "code": code,
+                    "descr_it": row["descr_it"]
+                })
             else:
                 missing.append(code)
 
-        st.markdown("## 🔧 OPT per RFID RdT")
+        # --- 4.1 Sezione RFID / RdT ---
+        st.markdown("## 🔧 OPT per RFID / RdT")
+
         for label, group_codes in opt_rfid_map.items():
             found = find_opt_in_group(vehicle_codes, group_codes, df_opt)
+
             if found:
                 lines = "; ".join(f"{c} — {d}" for c, d in found)
+                # uso entità HTML per la spunta (evita problemi di encoding)
                 st.markdown(
                     f"""
                     <div style='padding:8px 12px; border:1px solid #d0d0d0; border-radius:6px; margin-bottom:6px;'>
@@ -185,6 +200,7 @@ if analyze_button:
                     unsafe_allow_html=True,
                 )
 
+        # --- 4.2 OPT presenti ---
         st.markdown("## 📦 OPT presenti in vettura")
         if present:
             for item in present:
@@ -199,12 +215,14 @@ if analyze_button:
         else:
             st.write("_Nessun codice della vettura è presente nel database._")
 
+        # --- 4.3 OPT non trovati ---
         if missing:
             with st.expander("OPT non trovati nel database"):
                 st.write(", ".join(missing))
 
+        # --- 4.4 Output sintetico ---
         output_lines = []
-        output_lines.append("🔧 OPT per RFID RdT")
+        output_lines.append("🔧 OPT per RFID / RdT")
         for label, group_codes in opt_rfid_map.items():
             found = find_opt_in_group(vehicle_codes, group_codes, df_opt)
             if found:
@@ -225,6 +243,7 @@ if analyze_button:
             output_lines.append(", ".join(missing))
 
         output_text = "\n".join(output_lines)
+
         st.markdown("---")
         st.subheader("Testo sintetico degli opt")
         st.text_area("Output pronto da copiare", value=output_text, height=240)
