@@ -4,6 +4,22 @@ import os
 
 # --- Config pagina ---
 st.set_page_config(page_title="Ducato OPT Checker (Beta)", page_icon="🚐")
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-image:
+            linear-gradient(rgba(255,255,255,0.78), rgba(255,255,255,0.78)),
+            url("sfondo.png");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 st.title("Ducato OPT Checker (Beta) 🚐")
 st.write("Versione beta per la lettura rapida degli OPT da griglia prodotto.")
 st.markdown("---")
