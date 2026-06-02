@@ -2,57 +2,61 @@ import streamlit as st
 import pandas as pd
 import os
 
-IMAGE_NAME = "sfondo.jpg"  # sostituisci con il nome del file
+IMAGE_NAME = "sfondo.jpg"  # usa esattamente il nome che vedi in os.listdir()
+
+# Test rapido (opzionale, lascia per debug e poi rimuovi)
 st.write("Working dir:", os.getcwd())
 st.write("File esiste:", os.path.exists(IMAGE_NAME))
 st.write("Files nella cartella:", os.listdir(".")[:50])
 
-# --- Config pagina ---
-st.set_page_config(page_title="Ducato OPT Checker (Beta)", page_icon="🚐")
+# Mostra l'immagine per verificare che Streamlit la legga
+if os.path.exists(IMAGE_NAME):
+    st.image(IMAGE_NAME, caption="Test immagine (sfondo)", use_column_width=True)
+else:
+    st.warning(f"Immagine non trovata: {IMAGE_NAME}")
+
+# CSS per sfondo visibile, sfocato e non coprente
 st.markdown(
-    """
+    f"""
     <style>
-    /* layer sfondo sfocato posizionato dietro tutto il contenuto */
-    .stApp::before {
+    .stApp::before {{
         content: "";
         position: fixed;
         inset: 0;
-        background-image: url("sfondo.jpg");
+        background-image: url("{IMAGE_NAME}");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
         filter: blur(6px) brightness(0.65);
         transform: scale(1.03);
         z-index: -1;
-    }
+    }}
 
-    /* leggero velo sopra lo sfondo per garantire leggibilità */
-    .stApp::after {
+    .stApp::after {{
         content: "";
         position: fixed;
         inset: 0;
-        background: rgba(255,255,255,0.12); /* modifica opacità qui */
+        background: rgba(255,255,255,0.08);
         z-index: 0;
         pointer-events: none;
-    }
+    }}
 
-    /* contenuto principale sopra i layer di sfondo */
-    .main > div[role="main"] {
+    .main > div[role="main"] {{
         position: relative;
         z-index: 1;
-    }
+    }}
 
-    /* piccole regolazioni per i card HTML inseriti con unsafe_allow_html */
-    .stMarkdown div[style] {
-        background: rgba(255,255,255,0.85);
-    }
+    /* Mantieni le card leggibili ma non completamente bianche */
+    .stMarkdown div[style] {{
+        background: rgba(255,255,255,0.9);
+    }}
     </style>
-    """,
+    "",
     unsafe_allow_html=True
 )
-st.title("Ducato OPT Checker (Beta) 🚐")
-st.write("Versione beta per la lettura rapida degli OPT da griglia prodotto.")
-st.markdown("---")
+
+# --- Config pagina ---
+st.set_page_config(page_title="Ducato OPT Checker (Beta)", page_icon="🚐")
 
 # --- Nome del file CSV presente nella repository ---
 CSV_FILENAME = "griglia_prodotto.csv"
