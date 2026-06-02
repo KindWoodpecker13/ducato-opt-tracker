@@ -21,6 +21,7 @@ if os.path.exists(CSV_FILENAME):
         df_raw = df_raw.rename(columns={0: "descr_it", 1: "descr_en", 2: "code"})
 
         df_raw["code"] = df_raw["code"].astype(str).str.strip().str.upper()
+        df_raw["code"] = df_raw["code"].apply(lambda x: x.zfill(3))
         df_raw["descr_it"] = df_raw["descr_it"].astype(str).str.strip()
         df_raw["descr_en"] = df_raw["descr_en"].astype(str).str.strip()
 
@@ -75,7 +76,7 @@ if analyze_button:
         st.error("Inserisci almeno un codice OPT nella textarea.")
     else:
         raw_codes = opt_input.replace(",", " ").replace(";", " ").split()
-        vehicle_codes = sorted(set(code.strip().upper() for code in raw_codes if code.strip()))
+        vehicle_codes = sorted(set(code.strip().upper().zfill(3) for code in raw_codes if code.strip()))
 
         st.write(f"Codici trovati nella stringa: **{len(vehicle_codes)}**")
 
