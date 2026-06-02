@@ -17,24 +17,38 @@ st.subheader("1. Database OPT (caricato dalla repository)")
 df_opt = None
 if os.path.exists(CSV_FILENAME):
     try:
-        df_raw = pd.read_csv(CSV_FILENAME, header=None, sep=";", dtype=str, encoding="utf-8", engine="python")
+        df_raw = pd.read_csv(
+            CSV_FILENAME,
+            header=None,
+            sep=";",
+            dtype=str,
+            encoding="utf-8",
+            engine="python"
+        )
+
         df_raw = df_raw.rename(columns={0: "descr_it", 1: "descr_en", 2: "code"})
 
-        df_raw["code"] = df_raw["code"].astype(str).str.strip().str.upper()
-        df_raw["code"] = df_raw["code"].apply(lambda x: x.zfill(3))
+        # Pulizia + normalizzazione a 3 caratteri
+        df_raw["code"] = df_raw["code"].apply(
+            lambda x: str(x).strip().upper().zfill(3)
+        )
         df_raw["descr_it"] = df_raw["descr_it"].astype(str).str.strip()
         df_raw["descr_en"] = df_raw["descr_en"].astype(str).str.strip()
 
+        # Rimuovi righe senza codice valido
         df_raw = df_raw[df_raw["code"] != ""]
+
+        # Elimina duplicati
         df_opt = df_raw.drop_duplicates(subset=["code"]).reset_index(drop=True)
 
         st.success(f"Database OPT caricato automaticamente. Codici unici: {len(df_opt)}")
+
     except Exception as e:
         st.error(f"Errore nel leggere il file CSV '{CSV_FILENAME}': {e}")
         df_opt = None
 else:
-    st.error(f"File CSV non trovato nella repository: '{CSV_FILENAME}'. Caricalo nella repo e riprova.")
-    st.info("Nome file atteso: " + CSV_FILENAME)
+    st.error(f"File CSV non trovato nella repository: '{CSV_FILENAME}'.")
+    st.info("Caricalo nella repo e riprova.")
 
 st.markdown("---")
 
@@ -73,10 +87,14 @@ if analyze_button:
     if df_opt is None:
         st.error("Database non disponibile. Controlla che il file CSV sia presente nella repository.")
     elif not opt_input.strip():
-        st.error("Inserisci almeno un codice OPT nella textarea.")
+        st.error("Inserisci almeno un codice OPT.")
     else:
         raw_codes = opt_input.replace(",", " ").replace(";", " ").split()
-        vehicle_codes = sorted(set(code.strip().upper().zfill(3) for code in raw_codes if code.strip()))
+
+        # Normalizzazione input utente
+        vehicle_codes = sorted(
+            set(str(code).strip().upper().zfill(3) for code in raw_codes if str(code).strip())
+        )
 
         st.write(f"Codici trovati nella stringa: **{len(vehicle_codes)}**")
 
@@ -95,12 +113,12 @@ if analyze_button:
             else:
                 missing.append(code)
 
-        # --- 4.1 Sezione speciale RFID / RdT ---
+        # --- 4.1 Sezione RFID / RdT ---
         st.markdown("## 🔧 OPT per RFID / RdT")
-        
+
         for label, group_codes in opt_rfid_map.items():
             found = find_opt_in_group(vehicle_codes, group_codes, df_opt)
-        
+
             if found:
                 lines = "; ".join(f"{c} — {d}" for c, d in found)
                 st.markdown(
