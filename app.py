@@ -6,6 +6,7 @@ import os
 st.set_page_config(page_title="Ducato OPT Checker (Beta)", page_icon="🚐")
 st.title("Ducato OPT Checker (Beta) 🚐")
 st.write("Versione beta per la lettura rapida degli OPT da griglia prodotto.")
+st.markdown("---")
 
 # --- Nome del file CSV presente nella repository ---
 CSV_FILENAME = "griglia_prodotto.csv"  # metti qui il nome esatto del file nella repo
@@ -38,6 +39,8 @@ if os.path.exists(CSV_FILENAME):
 else:
     st.error(f"File CSV non trovato nella repository: '{CSV_FILENAME}'. Caricalo nella repo e riprova.")
     st.info("Nome file atteso: " + CSV_FILENAME)
+
+st.markdown("---")
 
 # --- 2. Input OPT vettura ---
 st.subheader("2. Inserisci gli OPT della vettura")
@@ -101,25 +104,41 @@ if analyze_button:
         # --- 4.1 Sezione speciale RFID / RdT ---
         st.markdown("## 🔧 OPT per RFID / RdT")
         for label, group_codes in opt_rfid_map.items():
-            found = find_opt_in_group(vehicle_codes, group_codes, df_opt)
-            if found:
-                # Mostra tutte le occorrenze trovate per il gruppo (più informativo)
-                lines = "; ".join(f"**{c}** — {d}" for c, d in found)
-                st.markdown(f"**{label}:** ✅ Presente — {lines}")
-            else:
-                # Se non trovato, mostriamo anche se uno dei codici del gruppo è nella stringa ma non nel DB
-                # (utile per capire se il codice è scritto ma non presente nella griglia)
-                in_string_but_not_in_db = [c for c in group_codes if c in vehicle_codes and c not in set(df_opt["code"])]
-                if in_string_but_not_in_db:
-                    st.markdown(f"**{label}:** ❌ Assente nel DB (codice presente nella stringa: {', '.join(in_string_but_not_in_db)})")
-                else:
-                    st.markdown(f"**{label}:** ❌ Assente")
+    found = find_opt_in_group(vehicle_codes, group_codes, df_opt)
+    if found:
+        lines = "; ".join(f"{c} — {d}" for c, d in found)
+        st.markdown(
+            f"""
+            <div style='padding:6px 10px; border:1px solid #d4edda; border-radius:6px; background-color:#f6fffa; margin-bottom:6px;'>
+                <b>{label}</b><br>
+                <span style='color:green; font-weight:bold;'>✅ Presente</span> — {lines}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            f"""
+            <div style='padding:6px 10px; border:1px solid #f8d7da; border-radius:6px; background-color:#fff5f5; margin-bottom:6px;'>
+                <b>{label}</b><br>
+                <span style='color:red; font-weight:bold;'>❌ Assente</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
         # --- 4.2 Sezione OPT presenti (solo quelli trovati) ---
         st.markdown("## 📦 OPT presenti in vettura")
         if present:
             for item in present:
-                st.markdown(f"- **{item['code']}** — {item['descr_it']}")
+                st.markdown(
+                    f"""
+                    <div style='padding:6px 10px; border:1px solid #e0e0e0; border-radius:6px; margin-bottom:4px;'>
+                        <b>{item['code']}</b> — {item['descr_it']}
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
         else:
             st.write("_Nessun codice della vettura è presente nel database._")
 
@@ -144,11 +163,12 @@ if analyze_button:
             for item in present:
                 output_lines.append(f"{item['code']} - {item['descr_it']}")
         else:
-            output_lines.append("Nessun codice presente nel DB.")
+            output_lines.append("Nessun codice presente nel DB Proto.")
         if missing:
             output_lines.append("\n❓ OPT non trovati")
             output_lines.append(", ".join(missing))
 
         output_text = "\n".join(output_lines)
-        st.subheader("Testo sintetico (copia e incolla)")
+        st.markdown("---")
+        st.subheader("Testo sintetico degli opt")
         st.text_area("Output pronto da copiare", value=output_text, height=240)
