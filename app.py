@@ -54,21 +54,82 @@ df_constraints = load_csv(CONSTRAINTS_PATH, sep=",")
 # -------------------------
 # Normalizzazione decode (se necessario)
 # -------------------------
-def normalize_A(df):
+# --- Robust normalize_A e debug colonne ---
+def normalize_A(df, path=A_PATH):
+    """
+    Normalizza df_A in modo robusto:
+    - se il CSV ha header corretti, li usa;
+    - se manca header, prova a usare la prima riga come header;
+    - se ancora non ci sono le colonne attese, rinomina le prime 4 colonne.
+    Restituisce DataFrame normalizzato o None se impossibile.
+    """
     if df is None:
+        st.sidebar.error(f"{path} non trovato o non leggibile.")
         return None
-    cols = list(df.columns)
+
+    # Mostra colonne caricate per debug
+    st.sidebar.write("decode A colonne raw:")
+    st.sidebar.write(list(df.columns))
+
+    expected = ["model_code", "gvw", "length_code", "output_symbol"]
+
+    # Caso 1: già ha le colonne attese
+    cols = [c.strip() for c in df.columns]
+    if all(c in cols for c in expected):
+        df = df.rename(columns={c: c.strip() for c in df.columns})
+        df = df[expected + [c for c in df.columns if c not in expected]]
+        df[expected] = df[expected].astype(str).apply(lambda col: col.str.strip())
+        return df
+
+    # Caso 2: il file potrebbe avere header ma con nomi diversi; prova a rinominare se ci sono almeno 4 colonne
     if len(cols) >= 4:
-        df = df.iloc[:, :4]
-        df.columns = ["model_code","gvw","length_code","output_symbol"]
-    else:
-        # fallback: try to keep as-is
-        df.columns = [c.strip() for c in df.columns]
-    df["model_code"] = df["model_code"].astype(str).str.strip()
-    df["gvw"] = df["gvw"].astype(str).str.strip()
-    df["length_code"] = df["length_code"].astype(str).str.strip()
-    df["output_symbol"] = df["output_symbol"].astype(str).str.strip()
-    return df
+        # Se la prima riga sembra contenere header (es. contiene '290/252' -> non header),
+        # proviamo a verificare se la prima riga è dati: se la prima riga ha valori numerici o pattern modello,
+        # allora il file probabilmente non ha header.
+        first_row = df.iloc[0].astype(str).tolist()
+        looks_like_data = any(any(ch.isdigit() for ch in str(cell)) for cell in first_row)
+        if looks_like_data:
+            # Probabilmente manca header: assegna header standard alle prime 4 colonne
+            df = df.rename(columns={df.columns[0]:"model_code", df.columns[1]:"gvw", df.columns[2]:"length_code", df.columns[3]:"output_symbol"})
+            df["model_code"] = df["model_code"].astype(str).str.strip()
+            df["gvw"] = df["gvw"].astype(str).str.strip()
+            df["length_code"] = df["length_code"].astype(str).str.strip()
+            df["output_symbol"] = df["output_symbol"].astype(str).str.strip()
+            st.sidebar.info("decode_sincom_A.csv: header mancante, rinominate prime 4 colonne come model_code, gvw, length_code, output_symbol")
+            return df
+        else:
+            # Ha header ma con nomi diversi: proviamo a mappare colonne comuni
+            mapping = {}
+            lower_cols = [c.lower() for c in cols]
+            if "model" in "".join(lower_cols) or any("290" in str(x) for x in first_row):
+                # fallback: assegna comunque le prime 4 colonne
+                mapping = {df.columns[0]:"model_code", df.columns[1]:"gvw", df.columns[2]:"length_code", df.columns[3]:"output_symbol"}
+                df = df.rename(columns=mapping)
+                df["model_code"] = df["model_code"].astype(str).str.strip()
+                df["gvw"] = df["gvw"].astype(str).str.strip()
+                df["length_code"] = df["length_code"].astype(str).str.strip()
+                df["output_symbol"] = df["output_symbol"].astype(str).str.strip()
+                st.sidebar.info("decode_sincom_A.csv: header presente ma non standard, rinominate prime 4 colonne.")
+                return df
+
+    # Se siamo qui, non siamo riusciti a normalizzare
+    st.sidebar.error("Impossibile normalizzare decode_sincom_A.csv: controlla header e separatore (usa ';').")
+    st.sidebar.write("Colonne trovate:", list(df.columns))
+    return None
+
+# Esempio di caricamento robusto (sostituisci il caricamento esistente)
+try:
+    # prova prima con sep=';'
+    df_A_raw = pd.read_csv(A_PATH, sep=";", dtype=str, encoding="utf-8", header=0).fillna("")
+except Exception:
+    # fallback: prova senza header (header=None) e con sep=';'
+    try:
+        df_A_raw = pd.read_csv(A_PATH, sep=";", dtype=str, encoding="utf-8", header=None).fillna("")
+    except Exception as e:
+        st.sidebar.error(f"Errore lettura {A_PATH}: {e}")
+        df_A_raw = None
+
+df_A = normalize_A(df_A_raw, path=A_PATH)
 
 def normalize_B(df):
     if df is None:
