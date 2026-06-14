@@ -333,7 +333,7 @@ with tab2:
                     missing.append(code)
 
             # Sezione Controlli Critici Omologativi
-            st.markdown("### 🔧 Componenti Critici Rilevati")
+            st.markdown("### 🔧 OPT per RFID/RdT")
             crit_col1, crit_col2 = st.columns(2)
             
             for i, (label, group_codes) in enumerate(opt_rfid_map.items()):
