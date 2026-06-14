@@ -1,19 +1,12 @@
 # app.py
-# Configuratore ITPL + OPT Checker (Streamlit)
-# Requisiti: streamlit, pandas
-# Posiziona i CSV nella stessa cartella di app.py:
-# - decode_sincom_A.csv (sep=';')
-# - decode_sincom_B.csv (sep=';')
-# - decode_sincom_n.csv (sep=';')
-# - level1_extracted.csv (sigla_base,body_label,sevel,gliwice,notes)
-# - opts.csv (opt_code,opt_descr,default_state,availability_rules,notes)
-# - constraints.csv (constraint_type,subject,target,condition,notes)
-#
+# ITPL Configurator & OPT Checker (Streamlit)
+# Requisiti: streamlit, pandas, openpyxl (solo se usi excel extraction)
 # Avvio: streamlit run app.py
 
 import streamlit as st
 import pandas as pd
 import os
+import re
 
 st.set_page_config(page_title="ITPL Configurator & OPT Checker", layout="wide")
 
@@ -28,203 +21,114 @@ OPTS_PATH = "opts.csv"
 CONSTRAINTS_PATH = "constraints.csv"
 
 # -------------------------
-# Utility: caricamento CSV
+# Helper: controllo DataFrame caricato
 # -------------------------
-def load_csv(path, sep=",", encoding="utf-8"):
-    if os.path.exists(path):
-        try:
-            df = pd.read_csv(path, sep=sep, dtype=str, encoding=encoding).fillna("")
-            return df
-        except Exception as e:
-            st.error(f"Errore caricamento {path}: {e}")
-            return None
-    else:
+def df_loaded_ok(df):
+    return (df is not None) and hasattr(df, "empty") and (not df.empty)
+
+# -------------------------
+# Caricamento CSV robusto
+# -------------------------
+def try_read_csv(path, sep=",", encoding="utf-8", header="infer"):
+    if not os.path.exists(path):
         return None
-
-# Carica decode
-df_A = load_csv(A_PATH, sep=";")
-df_B = load_csv(B_PATH, sep=";")
-df_N = load_csv(N_PATH, sep=";")
-
-# Carica level1, opts, constraints
-df_level1 = load_csv(LEVEL1_PATH, sep=",")
-df_opts = load_csv(OPTS_PATH, sep=",")
-df_constraints = load_csv(CONSTRAINTS_PATH, sep=",")
-
-# -------------------------
-# Normalizzazione decode (se necessario)
-# -------------------------
-# --- Robust normalize_A e debug colonne ---
-def normalize_A(df, path=A_PATH):
-    """
-    Normalizza df_A in modo robusto:
-    - se il CSV ha header corretti, li usa;
-    - se manca header, prova a usare la prima riga come header;
-    - se ancora non ci sono le colonne attese, rinomina le prime 4 colonne.
-    Restituisce DataFrame normalizzato o None se impossibile.
-    """
-    if df is None:
-        st.sidebar.error(f"{path} non trovato o non leggibile.")
-        return None
-
-    # Mostra colonne caricate per debug
-    st.sidebar.write("decode A colonne raw:")
-    st.sidebar.write(list(df.columns))
-
-    expected = ["model_code", "gvw", "length_code", "output_symbol"]
-
-    # Caso 1: già ha le colonne attese
-    cols = [c.strip() for c in df.columns]
-    if all(c in cols for c in expected):
-        df = df.rename(columns={c: c.strip() for c in df.columns})
-        df = df[expected + [c for c in df.columns if c not in expected]]
-        df[expected] = df[expected].astype(str).apply(lambda col: col.str.strip())
-        return df
-
-    # Caso 2: il file potrebbe avere header ma con nomi diversi; prova a rinominare se ci sono almeno 4 colonne
-    if len(cols) >= 4:
-        # Se la prima riga sembra contenere header (es. contiene '290/252' -> non header),
-        # proviamo a verificare se la prima riga è dati: se la prima riga ha valori numerici o pattern modello,
-        # allora il file probabilmente non ha header.
-        first_row = df.iloc[0].astype(str).tolist()
-        looks_like_data = any(any(ch.isdigit() for ch in str(cell)) for cell in first_row)
-        if looks_like_data:
-            # Probabilmente manca header: assegna header standard alle prime 4 colonne
-            df = df.rename(columns={df.columns[0]:"model_code", df.columns[1]:"gvw", df.columns[2]:"length_code", df.columns[3]:"output_symbol"})
-            df["model_code"] = df["model_code"].astype(str).str.strip()
-            df["gvw"] = df["gvw"].astype(str).str.strip()
-            df["length_code"] = df["length_code"].astype(str).str.strip()
-            df["output_symbol"] = df["output_symbol"].astype(str).str.strip()
-            st.sidebar.info("decode_sincom_A.csv: header mancante, rinominate prime 4 colonne come model_code, gvw, length_code, output_symbol")
-            return df
-        else:
-            # Ha header ma con nomi diversi: proviamo a mappare colonne comuni
-            mapping = {}
-            lower_cols = [c.lower() for c in cols]
-            if "model" in "".join(lower_cols) or any("290" in str(x) for x in first_row):
-                # fallback: assegna comunque le prime 4 colonne
-                mapping = {df.columns[0]:"model_code", df.columns[1]:"gvw", df.columns[2]:"length_code", df.columns[3]:"output_symbol"}
-                df = df.rename(columns=mapping)
-                df["model_code"] = df["model_code"].astype(str).str.strip()
-                df["gvw"] = df["gvw"].astype(str).str.strip()
-                df["length_code"] = df["length_code"].astype(str).str.strip()
-                df["output_symbol"] = df["output_symbol"].astype(str).str.strip()
-                st.sidebar.info("decode_sincom_A.csv: header presente ma non standard, rinominate prime 4 colonne.")
-                return df
-
-    # Se siamo qui, non siamo riusciti a normalizzare
-    st.sidebar.error("Impossibile normalizzare decode_sincom_A.csv: controlla header e separatore (usa ';').")
-    st.sidebar.write("Colonne trovate:", list(df.columns))
-    return None
-
-# Esempio di caricamento robusto (sostituisci il caricamento esistente)
-try:
-    # prova prima con sep=';'
-    df_A_raw = pd.read_csv(A_PATH, sep=";", dtype=str, encoding="utf-8", header=0).fillna("")
-except Exception:
-    # fallback: prova senza header (header=None) e con sep=';'
     try:
-        df_A_raw = pd.read_csv(A_PATH, sep=";", dtype=str, encoding="utf-8", header=None).fillna("")
-    except Exception as e:
-        st.sidebar.error(f"Errore lettura {A_PATH}: {e}")
-        df_A_raw = None
+        if header == "infer":
+            return pd.read_csv(path, sep=sep, dtype=str, encoding=encoding).fillna("")
+        else:
+            return pd.read_csv(path, sep=sep, dtype=str, encoding=encoding, header=header).fillna("")
+    except Exception:
+        # prova fallback con header=None
+        try:
+            return pd.read_csv(path, sep=sep, dtype=str, encoding=encoding, header=None).fillna("")
+        except Exception:
+            return None
 
-df_A = normalize_A(df_A_raw, path=A_PATH)
+# Carica con separatori probabili
+df_A_raw = try_read_csv(A_PATH, sep=";", encoding="utf-8")
+df_B_raw = try_read_csv(B_PATH, sep=";", encoding="utf-8")
+df_N_raw = try_read_csv(N_PATH, sep=";", encoding="utf-8")
+df_level1_raw = try_read_csv(LEVEL1_PATH, sep=",", encoding="utf-8")
+df_opts_raw = try_read_csv(OPTS_PATH, sep=",", encoding="utf-8")
+df_constraints_raw = try_read_csv(CONSTRAINTS_PATH, sep=",", encoding="utf-8")
 
-def normalize_B(df):
+# -------------------------
+# Normalizzazione decode A/B/N (tollerante)
+# -------------------------
+def normalize_A(df, path=A_PATH):
     if df is None:
         return None
     cols = list(df.columns)
-    if len(cols) >= 3:
-        df = df.iloc[:, :3]
-        df.columns = ["height_code","body_label","output_symbol"]
-    df["height_code"] = df["height_code"].astype(str).str.strip()
-    df["body_label"] = df["body_label"].astype(str).str.strip()
-    df["output_symbol"] = df["output_symbol"].astype(str).str.strip()
-    return df
-
-def normalize_N(df):
-    if df is None:
-        return None
-    cols = list(df.columns)
+    expected = ["model_code","gvw","length_code","output_symbol"]
+    # se ha già le colonne attese
+    if all(c in [c.strip() for c in cols] for c in expected):
+        df = df.rename(columns={c:c.strip() for c in cols})
+        df = df.astype(str).apply(lambda col: col.str.strip())
+        return df
+    # se manca header (prima riga dati) o header non standard -> rinomina prime 4 colonne
     if len(cols) >= 4:
-        df = df.iloc[:, :4]
-        df.columns = ["engine_family","engine_full_label","short_label","engine_digit"]
-    df["engine_family"] = df["engine_family"].astype(str).str.strip()
-    df["engine_full_label"] = df["engine_full_label"].astype(str).str.strip()
-    df["short_label"] = df["short_label"].astype(str).str.strip()
-    df["engine_digit"] = df["engine_digit"].astype(str).str.strip()
-    return df
-
-df_A = normalize_A(df_A)
-df_B = normalize_B(df_B)
-df_N = normalize_N(df_N)
-
-# -------------------------
-# Funzioni di decode: costruzione sigla
-# -------------------------
-def find_A_symbol(model_code, gvw, length_code):
-    if df_A is None:
-        return None
-    # match esatto su model_code + gvw + length_code
-    q = df_A[
-        (df_A["model_code"] == str(model_code)) &
-        (df_A["gvw"] == str(gvw)) &
-        (df_A["length_code"] == str(length_code))
-    ]
-    if not q.empty:
-        return q.iloc[0]["output_symbol"]
-    # fallback: model_code + length_code
-    q = df_A[
-        (df_A["model_code"] == str(model_code)) &
-        (df_A["length_code"] == str(length_code))
-    ]
-    if not q.empty:
-        return q.iloc[0]["output_symbol"]
-    # fallback: model_code only
-    q = df_A[df_A["model_code"] == str(model_code)]
-    if not q.empty:
-        return q.iloc[0]["output_symbol"]
+        df = df.rename(columns={cols[0]:"model_code", cols[1]:"gvw", cols[2]:"length_code", cols[3]:"output_symbol"})
+        df["model_code"] = df["model_code"].astype(str).str.strip()
+        df["gvw"] = df["gvw"].astype(str).str.strip()
+        df["length_code"] = df["length_code"].astype(str).str.strip()
+        df["output_symbol"] = df["output_symbol"].astype(str).str.strip()
+        st.sidebar.info(f"{os.path.basename(path)}: prime 4 colonne rinominate come model_code, gvw, length_code, output_symbol")
+        return df
+    # fallback: non normalizzabile
+    st.sidebar.error(f"{os.path.basename(path)}: non è stato possibile normalizzare (colonne: {cols})")
     return None
 
-def find_B_symbol(height_code, body_label):
-    if df_B is None:
-        return None
-    # match su height_code e body_label (contains)
-    q = df_B[
-        (df_B["height_code"] == str(height_code)) &
-        (df_B["body_label"].str.upper().str.contains(str(body_label).upper(), na=False))
-    ]
-    if not q.empty:
-        return q.iloc[0]["output_symbol"]
-    # fallback su height_code solo
-    q = df_B[df_B["height_code"] == str(height_code)]
-    if not q.empty:
-        return q.iloc[0]["output_symbol"]
-    return None
-
-def find_engine_digit(engine_query):
-    if df_N is None:
-        return None
-    # cerca per short_label esatto o contenuto, poi per engine_family
-    q = df_N[
-        (df_N["short_label"].str.contains(str(engine_query), na=False)) |
-        (df_N["engine_family"].str.contains(str(engine_query), na=False))
-    ]
-    if not q.empty:
-        return q.iloc[0]["engine_digit"]
-    return None
-
-# -------------------------
-# Caricamento e lookup producibilità (level1)
-# -------------------------
-def load_level1_df(df):
+def normalize_B(df, path=B_PATH):
     if df is None:
         return None
-    # assicurati colonne corrette
+    cols = list(df.columns)
+    expected = ["height_code","body_label","output_symbol"]
+    if all(c in [c.strip() for c in cols] for c in expected):
+        df = df.rename(columns={c:c.strip() for c in cols})
+        df = df.astype(str).apply(lambda col: col.str.strip())
+        return df
+    if len(cols) >= 3:
+        df = df.rename(columns={cols[0]:"height_code", cols[1]:"body_label", cols[2]:"output_symbol"})
+        df["height_code"] = df["height_code"].astype(str).str.strip()
+        df["body_label"] = df["body_label"].astype(str).str.strip()
+        df["output_symbol"] = df["output_symbol"].astype(str).str.strip()
+        st.sidebar.info(f"{os.path.basename(path)}: prime 3 colonne rinominate come height_code, body_label, output_symbol")
+        return df
+    st.sidebar.error(f"{os.path.basename(path)}: non è stato possibile normalizzare (colonne: {cols})")
+    return None
+
+def normalize_N(df, path=N_PATH):
+    if df is None:
+        return None
+    cols = list(df.columns)
+    expected = ["engine_family","engine_full_label","short_label","engine_digit"]
+    if all(c in [c.strip() for c in cols] for c in expected):
+        df = df.rename(columns={c:c.strip() for c in cols})
+        df = df.astype(str).apply(lambda col: col.str.strip())
+        return df
+    if len(cols) >= 4:
+        df = df.rename(columns={cols[0]:"engine_family", cols[1]:"engine_full_label", cols[2]:"short_label", cols[3]:"engine_digit"})
+        df["engine_family"] = df["engine_family"].astype(str).str.strip()
+        df["engine_full_label"] = df["engine_full_label"].astype(str).str.strip()
+        df["short_label"] = df["short_label"].astype(str).str.strip()
+        df["engine_digit"] = df["engine_digit"].astype(str).str.strip()
+        st.sidebar.info(f"{os.path.basename(path)}: prime 4 colonne rinominate come engine_family, engine_full_label, short_label, engine_digit")
+        return df
+    st.sidebar.error(f"{os.path.basename(path)}: non è stato possibile normalizzare (colonne: {cols})")
+    return None
+
+df_A = normalize_A(df_A_raw)
+df_B = normalize_B(df_B_raw)
+df_N = normalize_N(df_N_raw)
+
+# -------------------------
+# Normalizza level1, opts, constraints (se presenti)
+# -------------------------
+def normalize_level1(df):
+    if df is None:
+        return None
     cols = list(df.columns)
     if len(cols) >= 5 and cols[:5] != ["sigla_base","body_label","sevel","gliwice","notes"]:
-        # prova a rinominare le prime 5 colonne
         df = df.rename(columns={cols[0]:"sigla_base", cols[1]:"body_label", cols[2]:"sevel", cols[3]:"gliwice", cols[4]:"notes"})
     # normalizza flags
     if "sevel" in df.columns:
@@ -235,8 +139,62 @@ def load_level1_df(df):
         df["gliwice"] = df["gliwice"].apply(lambda x: "1" if x not in ("0","", "0.0") else "0")
     return df
 
-df_level1 = load_level1_df(df_level1)
+df_level1 = normalize_level1(df_level1_raw)
+df_opts = df_opts_raw.copy() if df_opts_raw is not None else None
+df_constraints = df_constraints_raw.copy() if df_constraints_raw is not None else None
 
+# -------------------------
+# Funzioni decode: costruzione sigla
+# -------------------------
+def find_A_symbol(model_code, gvw, length_code):
+    if df_A is None:
+        return None
+    q = df_A[
+        (df_A["model_code"] == str(model_code)) &
+        (df_A["gvw"] == str(gvw)) &
+        (df_A["length_code"] == str(length_code))
+    ]
+    if not q.empty:
+        return q.iloc[0]["output_symbol"]
+    q = df_A[
+        (df_A["model_code"] == str(model_code)) &
+        (df_A["length_code"] == str(length_code))
+    ]
+    if not q.empty:
+        return q.iloc[0]["output_symbol"]
+    q = df_A[df_A["model_code"] == str(model_code)]
+    if not q.empty:
+        return q.iloc[0]["output_symbol"]
+    return None
+
+def find_B_symbol(height_code, body_label):
+    if df_B is None:
+        return None
+    q = df_B[
+        (df_B["height_code"] == str(height_code)) &
+        (df_B["body_label"].str.upper().str.contains(str(body_label).upper(), na=False))
+    ]
+    if not q.empty:
+        return q.iloc[0]["output_symbol"]
+    q = df_B[df_B["height_code"] == str(height_code)]
+    if not q.empty:
+        return q.iloc[0]["output_symbol"]
+    return None
+
+def find_engine_digit(engine_query):
+    if df_N is None:
+        return None
+    q = df_N[
+        (df_N["short_label"].str.contains(str(engine_query), na=False)) |
+        (df_N["engine_family"].str.contains(str(engine_query), na=False))
+    ]
+    if not q.empty:
+        return q.iloc[0]["engine_digit"]
+    return None
+
+# -------------------------
+# Lookup producibilità (level1)
+# -------------------------
 def lookup_producibility(sigla, body_label=None):
     if df_level1 is None or not sigla:
         return None
@@ -259,7 +217,7 @@ def lookup_producibility(sigla, body_label=None):
     }
 
 # -------------------------
-# Parser regole e OPT (sicuro, senza eval)
+# Parser regole e OPT (sicuro)
 # -------------------------
 def parse_gvw_int(value):
     if not value:
@@ -268,18 +226,12 @@ def parse_gvw_int(value):
     try:
         return int(s)
     except:
-        # prova a estrarre numero
-        import re
         m = re.search(r"\d+", s)
         if m:
             return int(m.group())
     return None
 
 def eval_rules(rule_str, context):
-    """
-    rule_str: stringa tipo "sigla_prefix=AG;engine_digit_in=5,6;gvw_le=3500"
-    context: dict con chiavi: sigla, engine_digit, body_label, gvw (int), model_code, length_code, height_code
-    """
     if not rule_str or str(rule_str).strip().lower() in ("", "always", "true"):
         return True
     parts = [p.strip() for p in str(rule_str).split(";") if p.strip()]
@@ -311,7 +263,6 @@ def eval_rules(rule_str, context):
             if g is None or g <= int(v):
                 return False
         else:
-            # chiave non riconosciuta -> per sicurezza fallisce
             return False
     return True
 
@@ -369,74 +320,47 @@ def check_constraints(selected_opts, sigla, engine_digit, body_label, gvw):
     return conflicts
 
 # -------------------------
+# Sidebar debug: stato file e prime colonne
+# -------------------------
+st.sidebar.markdown("### Dati caricati")
+def show_df_info(name, df):
+    if df is None:
+        st.sidebar.write(f"{name}: MANCANTE")
+    else:
+        try:
+            rows = len(df)
+        except Exception:
+            rows = "?"
+        st.sidebar.write(f"{name}: OK — righe {rows}")
+        st.sidebar.write(list(df.columns)[:6])
+
+show_df_info("decode A", df_A)
+show_df_info("decode B", df_B)
+show_df_info("decode n", df_N)
+show_df_info("level1", df_level1)
+show_df_info("opts", df_opts)
+show_df_info("constraints", df_constraints)
+
+# -------------------------
 # UI: modalità (switch)
 # -------------------------
-mode = st.sidebar.radio("Modalità", ["Verifica OPT", "Configura ordine"])
+mode = st.sidebar.radio("Modalità", ["Configura ordine", "Verifica OPT"])
 
-# -------------------------
-# Modalità: Verifica OPT
-# -------------------------
-if mode == "Verifica OPT":
-    st.header("Verifica OPT")
-    st.markdown("Inserisci la sigla completa (es. AG5) o carica una configurazione per verificare lo stato degli OPT.")
-
-    col1, col2 = st.columns([2,1])
-    with col1:
-        sigla_input = st.text_input("Sigla completa (es. AG5)", value="")
-        body_input = st.text_input("Body (opzionale, es. PANEL VAN)", value="")
-        gvw_input = st.text_input("GVW (opzionale, es. 3500)", value="")
-        engine_digit_input = st.text_input("Engine digit (opzionale, es. 5)", value="")
-    with col2:
-        st.write("Carica CSV OPT (opzionale)")
-        uploaded_opts = st.file_uploader("Carica opts.csv (se vuoi testare file custom)", type=["csv"])
-        if uploaded_opts is not None:
-            try:
-                df_opts = pd.read_csv(uploaded_opts, dtype=str).fillna("")
-                st.success("opts.csv caricato per questa sessione")
-            except Exception as e:
-                st.error(f"Errore caricamento opts: {e}")
-
-    if st.button("Verifica"):
-        if not sigla_input:
-            st.error("Inserisci una sigla per procedere.")
-        else:
-            sigla = sigla_input.strip().upper()
-            engine_digit = engine_digit_input.strip() if engine_digit_input.strip() else None
-            opts_list = get_opts_for_config(sigla, engine_digit, body_input, gvw_input)
-            st.subheader("OPT trovati")
-            if not opts_list:
-                st.info("Nessun OPT disponibile (controlla opts.csv o la sigla).")
-            else:
-                for o in opts_list:
-                    state = o["state"]
-                    color = "green" if state=="SERIE" else ("orange" if state=="OPZIONALE" else "red")
-                    st.markdown(f"- **{o['opt_code']}** {o['opt_descr']} — <span style='color:{color}'>{state}</span>", unsafe_allow_html=True)
-
-            st.subheader("Controllo vincoli (simulazione selezione)")
-            # permetti all'utente di selezionare alcuni OPT per testare i vincoli
-            selectable = [o for o in opts_list if o["state"] != "NON_DISP"]
-            codes = [o["opt_code"] for o in selectable]
-            selected = st.multiselect("Seleziona OPT per testare i vincoli", options=codes)
-            conflicts = check_constraints(selected, sigla, engine_digit, body_input, gvw_input)
-            if conflicts:
-                st.error("Conflitti rilevati:")
-                for c in conflicts:
-                    st.write(f"- {c}")
-            else:
-                st.success("Nessun conflitto rilevato per la selezione corrente.")
+# Mantieni sigla generata in session state per riutilizzo nella Verifica OPT
+if "last_generated_sigla" not in st.session_state:
+    st.session_state["last_generated_sigla"] = ""
 
 # -------------------------
 # Modalità: Configura ordine
 # -------------------------
-else:
+if mode == "Configura ordine":
     st.header("Configura ordine ITPL")
     st.markdown("Costruisci la configurazione passo passo. Il sistema genera la sigla e verifica la producibilità in Sevel/Gliwice.")
 
-    # Se possibile, popola le select con valori noti
-    model_options = sorted(df_A["model_code"].unique()) if df_A is not None else ["290/252","295/254"]
-    length_options = sorted(df_A["length_code"].unique()) if df_A is not None else ["L2","L3","L4","L2+","L0"]
-    height_options = sorted(df_B["height_code"].unique()) if df_B is not None else ["H1","H2","H3"]
-    engine_options = df_N["short_label"].unique().tolist() if df_N is not None else ["140HP","180HP"]
+    model_options = sorted(df_A["model_code"].unique()) if df_loaded_ok(df_A) else ["290/252","295/254"]
+    length_options = sorted(df_A["length_code"].unique()) if df_loaded_ok(df_A) else ["L2","L3","L4","L2+","L0"]
+    height_options = sorted(df_B["height_code"].unique()) if df_loaded_ok(df_B) else ["H1","H2","H3"]
+    engine_options = df_N["short_label"].unique().tolist() if df_loaded_ok(df_N) else ["140HP","180HP"]
 
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -457,7 +381,6 @@ else:
 
         if not A or not B or not n:
             st.error(f"Impossibile generare sigla completa. A={A}, B={B}, n={n}")
-            # mostra suggerimenti diagnostici
             if not A:
                 st.info("Controlla mapping A (model/gvw/length).")
             if not B:
@@ -466,6 +389,7 @@ else:
                 st.info("Controlla mapping motore/cambio (file decode_sincom_n.csv).")
         else:
             sigla = f"{A}{B}{n}"
+            st.session_state["last_generated_sigla"] = sigla
             st.success(f"Sigla generata: {sigla}")
 
             prod = lookup_producibility(sigla, body_label)
@@ -498,16 +422,13 @@ else:
                     if prod.get("notes"):
                         st.info(f"Note: {prod['notes']}")
 
-                    # Mostra OPT (base) per questa configurazione (senza editing avanzato)
                     st.markdown("---")
                     st.subheader("OPT (stato base)")
                     opts_list = get_opts_for_config(sigla, n, body_label, gvw)
                     if not opts_list:
                         st.info("Nessun OPT trovato (controlla opts.csv).")
                     else:
-                        # tabella riassuntiva
-                        df_opts_view = pd.DataFrame(opts_list)
-                        df_opts_view = df_opts_view[["opt_code","opt_descr","state"]]
+                        df_opts_view = pd.DataFrame(opts_list)[["opt_code","opt_descr","state"]]
                         st.dataframe(df_opts_view, use_container_width=True)
 
                         st.markdown("Seleziona OPT opzionali per simulare vincoli")
@@ -521,7 +442,6 @@ else:
                         else:
                             st.success("Nessun conflitto rilevato per la selezione corrente.")
 
-                    # Riepilogo ordine (testo pronto per copia)
                     st.markdown("---")
                     st.subheader("Riepilogo ordine (testo)")
                     riepilogo = [
@@ -534,26 +454,80 @@ else:
                         f"Engine digit: {n}",
                         f"Plant scelto: {chosen_plant}"
                     ]
-                    if selected_opts:
+                    if 'selected_opts' in locals() and selected_opts:
                         riepilogo.append("OPT selezionati: " + ", ".join(selected_opts))
                     riepilogo_text = "\n".join(riepilogo)
                     st.code(riepilogo_text, language="text")
-                    st.button("Copia riepilogo (usa clipboard del browser)")
-
                 else:
                     st.warning("Questa configurazione non è producibile in nessuno dei due plant.")
                     st.info("Modifica le scelte per trovare una combinazione producibile.")
 
 # -------------------------
-# Footer: informazioni file caricati
+# Modalità: Verifica OPT (usa solo la sigla generata)
+# -------------------------
+else:
+    st.header("Verifica OPT")
+    st.markdown("Questa modalità usa la **sigla generata** dal configuratore. Se non hai ancora generato una sigla, vai su 'Configura ordine' e premi 'Genera sigla'.")
+
+    sigla_generated = st.session_state.get("last_generated_sigla", "")
+    if not sigla_generated:
+        st.warning("Nessuna sigla generata in questa sessione. Vai su 'Configura ordine' per creare una sigla.")
+        st.stop()
+
+    st.subheader("Sigla usata per la verifica")
+    st.info(f"Sigla generata: **{sigla_generated}**")
+
+    # campi opzionali per contesto (non modificano la sigla)
+    body_input = st.text_input("Body (opzionale, es. PANEL VAN)", value="")
+    gvw_input = st.text_input("GVW (opzionale, es. 3500)", value="")
+    engine_digit_input = st.text_input("Engine digit (opzionale, es. 5)", value="")
+
+    col2 = st.columns([1])[0]
+    with col2:
+        st.write("Carica opts.csv (opzionale)")
+        uploaded_opts = st.file_uploader("Carica opts.csv (se vuoi testare file custom)", type=["csv"])
+        if uploaded_opts is not None:
+            try:
+                df_opts = pd.read_csv(uploaded_opts, dtype=str).fillna("")
+                st.success("opts.csv caricato per questa sessione")
+            except Exception as e:
+                st.error(f"Errore caricamento opts: {e}")
+
+    if st.button("Verifica OPT per sigla generata"):
+        sigla = sigla_generated
+        engine_digit = engine_digit_input.strip() if engine_digit_input.strip() else None
+        opts_list = get_opts_for_config(sigla, engine_digit, body_input, gvw_input)
+        st.subheader("OPT trovati")
+        if not opts_list:
+            st.info("Nessun OPT disponibile (controlla opts.csv o la sigla).")
+        else:
+            for o in opts_list:
+                state = o["state"]
+                color = "green" if state=="SERIE" else ("orange" if state=="OPZIONALE" else "red")
+                st.markdown(f"- **{o['opt_code']}** {o['opt_descr']} — <span style='color:{color}'>{state}</span>", unsafe_allow_html=True)
+
+        st.subheader("Controllo vincoli (simulazione selezione)")
+        selectable = [o for o in opts_list if o["state"] != "NON_DISP"]
+        codes = [o["opt_code"] for o in selectable]
+        selected = st.multiselect("Seleziona OPT per testare i vincoli", options=codes)
+        conflicts = check_constraints(selected, sigla, engine_digit, body_input, gvw_input)
+        if conflicts:
+            st.error("Conflitti rilevati:")
+            for c in conflicts:
+                st.write(f"- {c}")
+        else:
+            st.success("Nessun conflitto rilevato per la selezione corrente.")
+
+# -------------------------
+# Footer: informazioni file caricati (riassunto)
 # -------------------------
 st.sidebar.markdown("---")
-st.sidebar.write("Dati caricati:")
+st.sidebar.write("Stato file (caricati e non vuoti):")
 st.sidebar.write({
-    "decode A": bool(df_A),
-    "decode B": bool(df_B),
-    "decode n": bool(df_N),
-    "level1": bool(df_level1),
-    "opts": bool(df_opts),
-    "constraints": bool(df_constraints)
+    "decode A": df_loaded_ok(df_A),
+    "decode B": df_loaded_ok(df_B),
+    "decode n": df_loaded_ok(df_N),
+    "level1": df_loaded_ok(df_level1),
+    "opts": df_loaded_ok(df_opts),
+    "constraints": df_loaded_ok(df_constraints)
 })
