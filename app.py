@@ -38,7 +38,6 @@ def try_read_csv(path, sep=",", encoding="utf-8", header="infer"):
         else:
             return pd.read_csv(path, sep=sep, dtype=str, encoding=encoding, header=header).fillna("")
     except Exception:
-        # prova fallback con header=None
         try:
             return pd.read_csv(path, sep=sep, dtype=str, encoding=encoding, header=None).fillna("")
         except Exception:
@@ -60,12 +59,10 @@ def normalize_A(df, path=A_PATH):
         return None
     cols = list(df.columns)
     expected = ["model_code","gvw","length_code","output_symbol"]
-    # se ha già le colonne attese
     if all(c in [c.strip() for c in cols] for c in expected):
         df = df.rename(columns={c:c.strip() for c in cols})
         df = df.astype(str).apply(lambda col: col.str.strip())
         return df
-    # se manca header (prima riga dati) o header non standard -> rinomina prime 4 colonne
     if len(cols) >= 4:
         df = df.rename(columns={cols[0]:"model_code", cols[1]:"gvw", cols[2]:"length_code", cols[3]:"output_symbol"})
         df["model_code"] = df["model_code"].astype(str).str.strip()
@@ -74,7 +71,6 @@ def normalize_A(df, path=A_PATH):
         df["output_symbol"] = df["output_symbol"].astype(str).str.strip()
         st.sidebar.info(f"{os.path.basename(path)}: prime 4 colonne rinominate come model_code, gvw, length_code, output_symbol")
         return df
-    # fallback: non normalizzabile
     st.sidebar.error(f"{os.path.basename(path)}: non è stato possibile normalizzare (colonne: {cols})")
     return None
 
@@ -130,7 +126,6 @@ def normalize_level1(df):
     cols = list(df.columns)
     if len(cols) >= 5 and cols[:5] != ["sigla_base","body_label","sevel","gliwice","notes"]:
         df = df.rename(columns={cols[0]:"sigla_base", cols[1]:"body_label", cols[2]:"sevel", cols[3]:"gliwice", cols[4]:"notes"})
-    # normalizza flags
     if "sevel" in df.columns:
         df["sevel"] = df["sevel"].astype(str).str.strip().replace({"":"0","-":"0"})
         df["sevel"] = df["sevel"].apply(lambda x: "1" if x not in ("0","", "0.0") else "0")
@@ -395,16 +390,20 @@ if mode == "Configura ordine":
     # Popola opzioni da file (fallback a valori hardcoded)
     model_options = sorted(df_A["model_code"].unique()) if df_loaded_ok(df_A) else ["290/252","295/254"]
     length_options = sorted(df_A["length_code"].unique()) if df_loaded_ok(df_A) else ["L2","L3","L4","L2+","L0"]
+
     # GVW come selectbox (estrai unici da df_A)
     if df_loaded_ok(df_A):
         gvw_options = sorted([g for g in df_A["gvw"].unique() if str(g).strip() != ""])
     else:
         gvw_options = ["2800","3000","3300","3500","4000"]
+
     # Body version da df_B
     if df_loaded_ok(df_B):
         body_options = sorted([b for b in df_B["body_label"].unique() if str(b).strip() != ""])
+        height_options = sorted([h for h in df_B["height_code"].unique() if str(h).strip() != ""])
     else:
         body_options = ["PANEL VAN","GLAZED VAN","SEMI GLAZED VAN","CHASSIS SINGLE CAB"]
+        height_options = ["H1","H2","H3"]
 
     # Motore e cambio: motore da df_N short_label, cambio estratto
     engine_options = df_N["short_label"].unique().tolist() if df_loaded_ok(df_N) else ["140HP","180HP"]
@@ -418,7 +417,7 @@ if mode == "Configura ordine":
         gvw = st.selectbox("GVW / PTT", options=gvw_options)
         length_code = st.selectbox("Passo / Lunghezza", options=length_options)
     with col2:
-        height_code = st.selectbox("Altezza", options=sorted(df_B["height_code"].unique()) if df_loaded_ok(df_B) else ["H1","H2","H3"])
+        height_code = st.selectbox("Altezza", options=height_options)
         body_label = st.selectbox("Body / Version", options=body_options)
     with col3:
         engine_query = st.selectbox("Motore (seleziona)", options=engine_options)
@@ -529,10 +528,10 @@ else:
     st.subheader("Sigla usata per la verifica")
     st.info(f"Sigla generata: **{sigla_generated}**")
 
-    # campi opzionali per contesto (non modificano la sigla)
+    # campi opzionali per contesto (non modificano la sigla) ma sono selectbox per coerenza
     body_input = st.selectbox("Body (opzionale, contesto)", options=(sorted(df_B["body_label"].unique()) if df_loaded_ok(df_B) else ["PANEL VAN"]))
     gvw_input = st.selectbox("GVW (opzionale, contesto)", options=(sorted(df_A["gvw"].unique()) if df_loaded_ok(df_A) else ["3500"]))
-    engine_digit_input = st.text_input("Engine digit (opzionale, es. 5)", value="")
+    engine_digit_input = st.selectbox("Engine digit (opzionale, contesto)", options=(sorted(df_N["engine_digit"].unique()) if df_loaded_ok(df_N) else ["5","6"]))
 
     col2 = st.columns([1])[0]
     with col2:
@@ -547,7 +546,7 @@ else:
 
     if st.button("Verifica OPT per sigla generata"):
         sigla = sigla_generated
-        engine_digit = engine_digit_input.strip() if engine_digit_input.strip() else None
+        engine_digit = engine_digit_input.strip() if str(engine_digit_input).strip() else None
         opts_list = get_opts_for_config(sigla, engine_digit, body_input, gvw_input)
         st.subheader("OPT trovati")
         if not opts_list:
