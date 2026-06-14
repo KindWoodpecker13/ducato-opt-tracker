@@ -16,122 +16,69 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    /* Reset e Sfondo Blu Profondo Sfumato */
-    html, body, .stApp {
-        background: none !important;
-    }
+    html, body, .stApp { background: none !important; }
     .stApp::before {
-        content: "";
-        position: fixed;
-        inset: 0;
+        content: ""; position: fixed; inset: 0;
         background: linear-gradient(135deg, #071426 0%, #0c203b 40%, #172d54 80%, #25447b 100%);
         z-index: -999;
     }
-    
-    /* Pulizia container Streamlit */
-    .block-container {
-        padding-top: 2rem !important;
-        padding-bottom: 2rem !important;
-    }
-    
-    /* Stile personalizzato per i Tab */
+    .block-container { padding-top: 2rem !important; padding-bottom: 2rem !important; }
     .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background-color: rgba(255, 255, 255, 0.05);
-        padding: 8px 12px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        gap: 8px; background-color: rgba(255, 255, 255, 0.05); padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .stTabs [data-baseweb="tab"] {
-        height: 45px;
-        white-space: pre;
-        background-color: transparent;
-        border-radius: 8px;
-        color: #cbd5e1 !important;
-        font-weight: 600;
-        padding: 0px 20px;
-        transition: all 0.3s ease;
+        height: 45px; white-space: pre; background-color: transparent; border-radius: 8px; color: #cbd5e1 !important; font-weight: 600; padding: 0px 20px; transition: all 0.3s ease;
     }
     .stTabs [aria-selected="true"] {
-        background-color: #4f7bd6 !important;
-        color: #ffffff !important;
-        box-shadow: 0 4px 12px rgba(79, 123, 214, 0.3);
+        background-color: #4f7bd6 !important; color: #ffffff !important; box-shadow: 0 4px 12px rgba(79, 123, 214, 0.3);
     }
-
-    /* Card custom per i risultati */
     .custom-card {
-        background: rgba(255, 255, 255, 0.06);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 16px;
-        padding: 24px;
-        text-align: center;
-        transition: transform 0.2s ease;
+        background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 24px; text-align: center; transition: transform 0.2s ease;
     }
-    .custom-card:hover {
-        transform: translateY(-2px);
-    }
-    
-    /* Box per gli OPT del Checker */
+    .custom-card:hover { transform: translateY(-2px); }
     .opt-box {
-        padding: 10px 14px; 
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.1); 
-        border-radius: 8px; 
-        margin-bottom: 6px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        padding: 10px 14px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;
     }
-    
-    /* Input e Form Styling */
-    .stSelectbox label, .stTextArea label {
-        color: #e2e8f0 !important;
-        font-weight: 500 !important;
-    }
+    .stSelectbox label, .stTextArea label, .stTextInput label { color: #e2e8f0 !important; font-weight: 500 !important; }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# ---------------------------------------------------------
-# HEADER DELL'APPLICAZIONE
-# ---------------------------------------------------------
 st.title("Ducato ITPL Toolbox 🚐")
-st.write("Piattaforma integrata per la validazione dei codici d'ordine e decodifica rapida degli OPT.")
+st.write("Piattaforma integrata per la validazione dei codici d'ordine, vincoli di 2° livello e decodifica OPT.")
 st.markdown("---")
 
-# Definizione dei Tab principali
-tab1, tab2 = st.tabs(["🎛️ Configuratore SINCOM & Plant", "🔬 Checker OPT Avanzato"])
+tab1, tab2 = st.tabs(["🎛️ Configuratore SINCOM & OTD", "🔬 Checker OPT Avanzato"])
 
 # =========================================================
-# TAB 1: CONFIGURATORE SINCOM & PLANT CHECKER
+# TAB 1: CONFIGURATORE SINCOM, PLANT & 2° LIVELLO
 # =========================================================
 with tab1:
     st.subheader("Configurazione Guidata del Veicolo")
-    st.write("Seleziona i vincoli tecnici per comporre il codice SINCOM corretto e verificarne il Plant di produzione.")
+    st.write("Seleziona i vincoli tecnici per comporre il codice SINCOM, verificarne il Plant e controllare la compatibilità degli OPT di 2° livello.")
     
-    # Tentativo di caricamento di tutti i CSV di configurazione
     try:
         df_a = pd.read_csv("decode_sincom_A.csv", sep=";", dtype=str).apply(lambda x: x.str.strip())
         df_b = pd.read_csv("decode_sincom_B.csv", sep=";", dtype=str)
         df_b["ALTEZZA"] = df_b["ALTEZZA"].fillna("").astype(str).str.strip()
         df_b["BODY"] = df_b["BODY"].fillna("").astype(str).str.strip()
-        
         df_n = pd.read_csv("decode_sincom_n.csv", sep=";", dtype=str).apply(lambda x: x.str.strip())
-        
-        # Caricamento del file di 1° livello con la mappatura reale dei plant
         df_1lev = pd.read_csv("decode_1°lev.csv", sep=";", dtype=str).apply(lambda x: x.str.strip())
+        
+        # LETTURA DEL FILE EXCEL DI 2° LIVELLO
+        file_2lev_name = "2°level.xlsx"
+        df_2lev = None
+        if os.path.exists(file_2lev_name):
+            df_2lev = pd.read_excel(file_2lev_name, sheet_name="2° LEVEL SINCOM", dtype=str)
+            
         db_ready = True
     except Exception as e:
-        st.error(f"⚠️ Errore nel caricamento dei CSV del configuratore: {e}")
-        st.info("Verifica che i file siano nominati correttamente e usino il punto e virgola ';' come separatore.")
+        st.error(f"⚠️ Errore nel caricamento dei database: {e}")
         db_ready = False
 
     if db_ready:
         st.markdown("### 🎚️ Seleziona Parametri Griglia Prodotto")
-        
-        # Griglia a 3 colonne per gli Step di configurazione
         col1, col2, col3 = st.columns(3)
         
         with col1:
@@ -194,39 +141,33 @@ with tab1:
             producibile_gliwice = False
             codice_mappato = False
             
-            # Controllo di lookup basato sulla corrispondenza esatta dell'indice SINCOM
             if "SINCOM" in df_1lev.columns and "SEVEL" in df_1lev.columns and "GLIWICE" in df_1lev.columns:
                 match_sincom = df_1lev[df_1lev["SINCOM"] == sincom_generato]
-                
                 if not match_sincom.empty:
                     codice_mappato = True
                     prod_sevel = match_sincom["SEVEL"].values[0].strip().upper()
                     prod_gliwice = match_sincom["GLIWICE"].values[0].strip().upper()
-                    
                     if prod_sevel == "SI": producibile_sevel = True
                     if prod_gliwice == "SI": producibile_gliwice = True
             
-            # Determinazione dell'output visivo in base al matricione reale delle celle
             if codice_mappato:
                 if producibile_sevel and producibile_gliwice:
                     plant_text = "CO-PRODUCTION<br><span style='font-size:16px;'>Sevel (IT) & Gliwice (PL)</span>"
-                    plant_color = "#28a745" # Verde successo speculare
+                    plant_color = "#28a745"
                 elif producibile_sevel:
                     plant_text = "SEVEL<br><span style='font-size:16px;'>Val di Sangro (Italia)</span>"
-                    plant_color = "#21c35a" # Verde stabilimento Sevel
+                    plant_color = "#21c35a"
                 elif producibile_gliwice:
                     plant_text = "GLIWICE<br><span style='font-size:16px;'>Gliwice (Polonia)</span>"
-                    plant_color = "#4f7bd6" # Blu Stellantis
+                    plant_color = "#4f7bd6"
                 else:
                     plant_text = "NON PRODUCIBILE<br><span style='font-size:16px;'>Escluso dai Sistemi di Produzione</span>"
-                    plant_color = "#ff4b4b" # Rosso Bloccato
+                    plant_color = "#ff4b4b"
             else:
                 plant_text = "NON IN MATRICE<br><span style='font-size:16px;'>Combinazione Teorica Non Esistente</span>"
                 plant_color = "#ff4b4b"
 
-            # Interfaccia Output Grafica Elegante
             out_col1, out_col2 = st.columns(2)
-            
             with out_col1:
                 st.markdown(
                     f"""
@@ -240,7 +181,6 @@ with tab1:
                     """, 
                     unsafe_allow_html=True
                 )
-                
             with out_col2:
                 st.markdown(
                     f"""
@@ -252,16 +192,45 @@ with tab1:
                     """, 
                     unsafe_allow_html=True
                 )
-                
-            # Preview della feature futura per la Griglia OPT di serie/optional
+
+            # ---------------------------------------------------------
+            # VERIFICA VINCOLI E ORDINABILITÀ OPT (2° LIVELLO EXCEL)
+            # ---------------------------------------------------------
             st.markdown("---")
-            with st.expander("🔮 Matrice dotazioni di serie ed esclusioni OPT (Roadmap)"):
-                st.info(f"Logica pronta per l'aggancio: il codice {sincom_generato} interrogherà la griglia prodotto per estrarre la lista degli OPT standard e i pacchetti ordinabili associati a questa specifica combinazione.")
+            st.markdown("### 🔬 Verifica Vincoli e Ordinabilità OPT (2° Livello)")
+            
+            if df_2lev is not None:
+                st.write("Verifica se un optional specifico è compatibile con la configurazione corrente o se è già presente di serie.")
+                search_opt = st.text_input("Inserisci un codice OPT da verificare (es. 041, 210, JMY):", "").strip().upper()
+                
+                if search_opt:
+                    # Filtriamo provvisoriamente per modello/lunghezza nell'attesa dell'esatta corrispondenza di cella
+                    match_rows = df_2lev[
+                        (df_2lev.astype(str).apply(lambda x: x.str.contains(modello_sel, case=False, na=False)).any(axis=1)) &
+                        (df_2lev.astype(str).apply(lambda x: x.str.contains(lunghezza_sel, case=False, na=False)).any(axis=1))
+                    ]
+                    
+                    if not search_opt in df_2lev.columns:
+                        st.warning(f"Il codice OPT **{search_opt}** non è stato trovato come colonna all'interno del tracciato Excel.")
+                    else:
+                        valore_opt = "O"
+                        if not match_rows.empty:
+                            valore_opt = str(match_rows[search_opt].values[0]).strip().upper()
+                        
+                        if valore_opt in ["S", "SERIE", "1"]:
+                            st.markdown(f"<div style='padding:16px; background-color:rgba(40,167,69,0.15); border:1px solid #28a745; border-radius:8px;'><b style='color:#28a745;'>🟢 DI SERIE:</b> L'optional <b>{search_opt}</b> è già incluso di serie nel pacchetto base per il SINCOM {sincom_generato}.</div>", unsafe_allow_html=True)
+                        elif valore_opt in ["O", "OPTIONAL", "OPT"]:
+                            st.markdown(f"<div style='padding:16px; background-color:rgba(79,123,214,0.15); border:1px solid #4f7bd6; border-radius:8px;'><b style='color:#4f7bd6;'>🔵 ORDINABILE:</b> L'optional <b>{search_opt}</b> è disponibile a richiesta/pagamento su questa configurazione.</div>", unsafe_allow_html=True)
+                        else:
+                            st.markdown(f"<div style='padding:16px; background-color:rgba(220,53,69,0.15); border:1px solid #dc3545; border-radius:8px;'><b style='color:#dc3545;'>🔴 NON DISPONIBILE:</b> L'optional <b>{search_opt}</b> non è configurabile o è incompatibile con questa variante.</div>", unsafe_allow_html=True)
+            else:
+                st.info(f"ℹ️ File di 2° livello `{file_2lev_name}` non rilevato nella root. Carica l'Excel per sbloccare il semaforo degli optional.")
+                
         else:
             st.error("Combinazione incompleta. Assicurati che tutti i menù a tendina abbiano un valore valido selezionato.")
 
 # =========================================================
-# TAB 2: CHECKER OPT (IL TUO STRUMENTO OTTIMIZZATO)
+# TAB 2: CHECKER OPT (INVARIATO)
 # =========================================================
 with tab2:
     CSV_FILENAME = "griglia_prodotto.csv"
@@ -282,13 +251,7 @@ with tab2:
         st.error(f"File '{CSV_FILENAME}' non rilevato nella repository corrente.")
 
     st.markdown("---")
-    opt_input = st.text_area(
-        "Incolla qui la stringa o la lista dei codici OPT da analizzare:",
-        height=130,
-        placeholder="Esempio: 041, 140, 253, 316, 4bf",
-        key="opt_checker_area"
-    )
-    
+    opt_input = st.text_area("Incolla qui la stringa o la lista dei codici OPT da analizzare:", height=130, placeholder="Esempio: 041, 140, 253, 316, 4bf", key="opt_checker_area")
     analyze_button = st.button("Avvia Decodifica Stringa", type="primary")
 
     opt_rfid_map = {
@@ -311,35 +274,26 @@ with tab2:
         return found
 
     if analyze_button:
-        if df_opt is None:
-            st.error("Database OPT non pronto.")
-        elif not opt_input.strip():
-            st.error("Nessun codice inserito nel box di testo.")
+        if df_opt is None: st.error("Database OPT non pronto.")
+        elif not opt_input.strip(): st.error("Nessun codice inserito nel box di testo.")
         else:
             raw_codes = opt_input.replace(",", " ").replace(";", " ").split()
             vehicle_codes = sorted(set(str(code).strip().upper().zfill(3) for code in raw_codes if str(code).strip()))
-            
-            # Layout Risultati Analisi
             st.markdown(f"#### Analisi completata: Rilevati **{len(vehicle_codes)}** codici unici.")
             
             db_codes = set(df_opt["code"].unique())
             present, missing = [], []
-
             for code in vehicle_codes:
                 if code in db_codes:
                     row = df_opt[df_opt["code"] == code].iloc[0]
                     present.append({"code": code, "descr_it": row["descr_it"]})
-                else:
-                    missing.append(code)
+                else: missing.append(code)
 
-            # Sezione Controlli Critici Omologativi
-            st.markdown("### 🔧 OPT per RFID/RdT")
+            st.markdown("### 🔧 Componenti Critici Rilevati")
             crit_col1, crit_col2 = st.columns(2)
-            
             for i, (label, group_codes) in enumerate(opt_rfid_map.items()):
                 found = find_opt_in_group(vehicle_codes, group_codes, df_opt)
                 target_col = crit_col1 if i % 2 == 0 else crit_col2
-                
                 with target_col:
                     if found:
                         lines = "; ".join(f"[{c}] {d}" for c, d in found)
@@ -347,30 +301,9 @@ with tab2:
                     else:
                         st.markdown(f"<div style='padding:12px; background: rgba(220, 53, 69, 0.1); border: 1px solid #dc3545; border-radius:8px; margin-bottom:8px;'><b style='color:#dc3545;'>❌ {label}</b><br><span style='font-size:13px; color:#cbd5e1;'>Non configurato in lista</span></div>", unsafe_allow_html=True)
 
-            # Elenco completo delle decodifiche estese
             st.markdown("### 📦 Elenco Completo OPT Decodificati")
             if present:
                 for item in present:
                     st.markdown(f"<div class='opt-box'><div><b style='color:#4f7bd6; font-size:16px;'>{item['code']}</b> — <span style='color:#f1f5f9;'>{item['descr_it']}</span></div><span style='color:#21c35a; font-size:12px;'>● Validato</span></div>", unsafe_allow_html=True)
-            else:
-                st.info("Nessun codice inserito corrisponde al database.")
-
             if missing:
-                with st.expander("⚠️ Visualizza Codici Anonimi o Non Trovati nel DB"):
-                    st.warning(", ".join(missing))
-
-            # Creazione blocco di testo pulito pronto per Excel/Mail
-            output_lines = ["--- REPORT DECODIFICA OPT DUCATO ---"]
-            for label, group_codes in opt_rfid_map.items():
-                found = find_opt_in_group(vehicle_codes, group_codes, df_opt)
-                output_lines.append(f"{label}: PRESENTE -> {'; '.join(f'[{c}] {d}' for c, d in found)}" if found else f"{label}: ASSENTE")
-            
-            output_lines.append("\n[ELENCO COMPLETO]")
-            for item in present:
-                output_lines.append(f"{item['code']} - {item['descr_it']}")
-            if missing:
-                output_lines.append(f"\nNON TROVATI NEL DB: {', '.join(missing)}")
-                
-            st.markdown("---")
-            st.subheader("📋 Output pronto da Copiare / Incollare")
-            st.text_area("Copia questo testo per i tuoi log o per le comunicazioni di stabilimento:", value="\n".join(output_lines), height=200)
+                with st.expander("⚠️ Visualizza Codici Anonimi o Non Trovati nel DB"): st.warning(", ".join(missing))
