@@ -120,7 +120,7 @@ with tab1:
         
         df_n = pd.read_csv("decode_sincom_n.csv", sep=";", dtype=str).apply(lambda x: x.str.strip())
         
-        # Il file di 1° livello fa da matrice di controllo finale per i Plant
+        # Caricamento del file di 1° livello con la mappatura reale dei plant
         df_1lev = pd.read_csv("decode_1°lev.csv", sep=";", dtype=str).apply(lambda x: x.str.strip())
         db_ready = True
     except Exception as e:
@@ -182,7 +182,7 @@ with tab1:
             carattere_n = res_n["SIGLA_n"].values[0] if not res_n.empty else None
 
         # ---------------------------------------------------------
-        # ELABORAZIONE LOGICA DELLE COMPATIBILITÀ E DEI PLANT
+        # ELABORAZIONE LOGICA DETTAGLIATA REALE DEI PLANT
         # ---------------------------------------------------------
         st.markdown("---")
         st.markdown("### 📋 Analisi di Fattibilità Industriale")
@@ -190,41 +190,39 @@ with tab1:
         if lettera_A and lettera_B and carattere_n:
             sincom_generato = f"{lettera_A}{lettera_B}{carattere_n}".upper()
             
-            # Reset variabili di controllo plant
             producibile_sevel = False
             producibile_gliwice = False
+            codice_mappato = False
             
-            # Eseguiamo il lookup sul foglio di 1° livello per stanare il SINCOM nelle colonne dei Plant
-            # Assumiamo che nel file decode_1°lev.csv ci siano le colonne nominate 'SEVEL' e 'GLIWICE'
-            if "SEVEL" in df_1lev.columns and "GLIWICE" in df_1lev.columns:
-                # Cerchiamo se il codice è presente nella colonna Sevel (cella non vuota e diversa da '-')
-                match_sevel = df_1lev[(df_1lev["SEVEL"] == sincom_generato) & (df_1lev["SEVEL"] != "-")]
-                # Cerchiamo se il codice è presente nella colonna Gliwice
-                match_gliwice = df_1lev[(df_1lev["GLIWICE"] == sincom_generato) & (df_1lev["GLIWICE"] != "-")]
+            # Controllo di lookup basato sulla corrispondenza esatta dell'indice SINCOM
+            if "SINCOM" in df_1lev.columns and "SEVEL" in df_1lev.columns and "GLIWICE" in df_1lev.columns:
+                match_sincom = df_1lev[df_1lev["SINCOM"] == sincom_generato]
                 
-                if not match_sevel.empty: producibile_sevel = True
-                if not match_gliwice.empty: producibile_gliwice = True
-            else:
-                # Logica di backup nel caso le colonne abbiano nomi leggermente diversi
-                st.warning("⚠️ Intestazioni 'SEVEL' o 'GLIWICE' non trovate in `decode_1°lev.csv`. Uso della logica dimensionale di sicurezza.")
-                if lunghezza_sel in ["L4"] or altezza_sel == "H3" or motore_sel in ["BEV", "HYDROGEN"]:
-                    producibile_gliwice = True
+                if not match_sincom.empty:
+                    codice_mappato = True
+                    prod_sevel = match_sincom["SEVEL"].values[0].strip().upper()
+                    prod_gliwice = match_sincom["GLIWICE"].values[0].strip().upper()
+                    
+                    if prod_sevel == "SI": producibile_sevel = True
+                    if prod_gliwice == "SI": producibile_gliwice = True
+            
+            # Determinazione dell'output visivo in base al matricione reale delle celle
+            if codice_mappato:
+                if producibile_sevel and producibile_gliwice:
+                    plant_text = "CO-PRODUCTION<br><span style='font-size:16px;'>Sevel (IT) & Gliwice (PL)</span>"
+                    plant_color = "#28a745" # Verde successo speculare
+                elif producibile_sevel:
+                    plant_text = "SEVEL<br><span style='font-size:16px;'>Val di Sangro (Italia)</span>"
+                    plant_color = "#21c35a" # Verde stabilimento Sevel
+                elif producibile_gliwice:
+                    plant_text = "GLIWICE<br><span style='font-size:16px;'>Gliwice (Polonia)</span>"
+                    plant_color = "#4f7bd6" # Blu Stellantis
                 else:
-                    producibile_sevel = True
-
-            # Determinazione del verdetto finale del plant
-            if producibile_sevel and producibile_gliwice:
-                plant_text = "CO-PRODUCTION<br><span style='font-size:16px;'>Sevel (IT) & Gliwice (PL)</span>"
-                plant_color = "#28a745" # Verde successo
-            elif producibile_sevel:
-                plant_text = "SEVEL<br><span style='font-size:16px;'>Val di Sangro (Italia)</span>"
-                plant_color = "#21c35a" # Verde Sevel
-            elif producibile_gliwice:
-                plant_text = "GLIWICE<br><span style='font-size:16px;'>Gliwice (Polonia)</span>"
-                plant_color = "#4f7bd6" # Blu Stellantis
+                    plant_text = "NON PRODUCIBILE<br><span style='font-size:16px;'>Escluso dai Sistemi di Produzione</span>"
+                    plant_color = "#ff4b4b" # Rosso Bloccato
             else:
-                plant_text = "NON PRODUCIBILE<br><span style='font-size:16px;'>Combinazione Esclusa da Matrice</span>"
-                plant_color = "#ff4b4b" # Rosso Errore
+                plant_text = "NON IN MATRICE<br><span style='font-size:16px;'>Combinazione Teorica Non Esistente</span>"
+                plant_color = "#ff4b4b"
 
             # Interfaccia Output Grafica Elegante
             out_col1, out_col2 = st.columns(2)
@@ -249,7 +247,7 @@ with tab1:
                     <div class="custom-card" style="border-top: 5px solid {plant_color};">
                         <span style="letter-spacing: 1px; color: #cbd5e1; font-weight: 500; font-size: 14px;">ALLOCAZIONE STABILIMENTO</span>
                         <div style="font-size: 32px; font-weight: 800; color: {plant_color}; margin: 18px 0; line-height: 1.2;">{plant_text}</div>
-                        <span style="color: #94a3b8; font-size: 12px;">Verificato incrociando i vincoli di 1° Livello</span>
+                        <span style="color: #94a3b8; font-size: 12px;">Validato incrociando il database di 1° Livello</span>
                     </div>
                     """, 
                     unsafe_allow_html=True
@@ -276,7 +274,6 @@ with tab2:
             df_raw = df_raw.rename(columns={0: "descr_it", 1: "descr_en", 2: "code"})
             df_raw["code"] = df_raw["code"].apply(lambda x: str(x).strip().upper().zfill(3))
             df_raw["descr_it"] = df_raw["descr_it"].astype(str).str.strip()
-            df_raw = df_raw[df_raw["code"] != ""]
             df_opt = df_raw.drop_duplicates(subset=["code"]).reset_index(drop=True)
             st.success(f"✔️ Database di decodifica attivo. Caricati {len(df_opt)} codici OPT unici della griglia.")
         except Exception as e:
