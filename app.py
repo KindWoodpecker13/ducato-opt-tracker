@@ -181,15 +181,50 @@ def find_B_symbol(height_code, body_label):
         return q.iloc[0]["output_symbol"]
     return None
 
-def find_engine_digit(engine_query):
+# -------------------------
+# Transmission extraction and engine digit lookup (considers transmission)
+# -------------------------
+def extract_transmissions_from_dfN(df):
+    if df is None:
+        return []
+    tx_set = set()
+    for _, r in df.iterrows():
+        for col in ["engine_full_label", "short_label", "engine_family"]:
+            val = str(r.get(col,""))
+            tokens = re.split(r"[ ,;/\-()]+", val)
+            for t in tokens:
+                t = t.strip()
+                if not t:
+                    continue
+                if re.match(r"^[A-Za-z]{1,4}\d{0,3}$", t) and len(t) <= 8:
+                    tx_set.add(t)
+    tx_list = sorted(tx_set)
+    tx_list = [t for t in tx_list if not re.match(r"^(KW|HP|EURO|E|VI|VI\.E)$", t.upper())]
+    return tx_list
+
+def find_engine_digit(engine_query, transmission_query=None):
     if df_N is None:
         return None
     q = df_N[
         (df_N["short_label"].str.contains(str(engine_query), na=False)) |
         (df_N["engine_family"].str.contains(str(engine_query), na=False))
     ]
+    if transmission_query and not q.empty:
+        q2 = q[
+            q["engine_full_label"].str.contains(str(transmission_query), na=False) |
+            q["short_label"].str.contains(str(transmission_query), na=False)
+        ]
+        if not q2.empty:
+            return q2.iloc[0]["engine_digit"]
     if not q.empty:
         return q.iloc[0]["engine_digit"]
+    if transmission_query:
+        q3 = df_N[
+            df_N["engine_full_label"].str.contains(str(transmission_query), na=False) |
+            df_N["short_label"].str.contains(str(transmission_query), na=False)
+        ]
+        if not q3.empty:
+            return q3.iloc[0]["engine_digit"]
     return None
 
 # -------------------------
@@ -357,27 +392,43 @@ if mode == "Configura ordine":
     st.header("Configura ordine ITPL")
     st.markdown("Costruisci la configurazione passo passo. Il sistema genera la sigla e verifica la producibilità in Sevel/Gliwice.")
 
+    # Popola opzioni da file (fallback a valori hardcoded)
     model_options = sorted(df_A["model_code"].unique()) if df_loaded_ok(df_A) else ["290/252","295/254"]
     length_options = sorted(df_A["length_code"].unique()) if df_loaded_ok(df_A) else ["L2","L3","L4","L2+","L0"]
-    height_options = sorted(df_B["height_code"].unique()) if df_loaded_ok(df_B) else ["H1","H2","H3"]
+    # GVW come selectbox (estrai unici da df_A)
+    if df_loaded_ok(df_A):
+        gvw_options = sorted([g for g in df_A["gvw"].unique() if str(g).strip() != ""])
+    else:
+        gvw_options = ["2800","3000","3300","3500","4000"]
+    # Body version da df_B
+    if df_loaded_ok(df_B):
+        body_options = sorted([b for b in df_B["body_label"].unique() if str(b).strip() != ""])
+    else:
+        body_options = ["PANEL VAN","GLAZED VAN","SEMI GLAZED VAN","CHASSIS SINGLE CAB"]
+
+    # Motore e cambio: motore da df_N short_label, cambio estratto
     engine_options = df_N["short_label"].unique().tolist() if df_loaded_ok(df_N) else ["140HP","180HP"]
+    transmission_options = extract_transmissions_from_dfN(df_N)
+    if not transmission_options:
+        transmission_options = ["MT6","AT8"]
 
     col1, col2, col3 = st.columns(3)
     with col1:
         model_code = st.selectbox("Model / Gamma", options=model_options)
-        gvw = st.text_input("GVW / PTT (es. 3500 o >3500)", value="")
+        gvw = st.selectbox("GVW / PTT", options=gvw_options)
         length_code = st.selectbox("Passo / Lunghezza", options=length_options)
     with col2:
-        height_code = st.selectbox("Altezza", options=height_options)
-        body_label = st.text_input("Body / Version (es. PANEL VAN)", value="PANEL VAN")
+        height_code = st.selectbox("Altezza", options=sorted(df_B["height_code"].unique()) if df_loaded_ok(df_B) else ["H1","H2","H3"])
+        body_label = st.selectbox("Body / Version", options=body_options)
     with col3:
-        engine_query = st.selectbox("Motore / Cambio (seleziona)", options=engine_options)
+        engine_query = st.selectbox("Motore (seleziona)", options=engine_options)
+        transmission_query = st.selectbox("Cambio (seleziona)", options=transmission_options)
         st.write("Seleziona motore e cambio per ottenere il digit della sigla.")
 
     if st.button("Genera sigla e verifica producibilità"):
         A = find_A_symbol(model_code, gvw, length_code)
         B = find_B_symbol(height_code, body_label)
-        n = find_engine_digit(engine_query)
+        n = find_engine_digit(engine_query, transmission_query)
 
         if not A or not B or not n:
             st.error(f"Impossibile generare sigla completa. A={A}, B={B}, n={n}")
@@ -452,6 +503,7 @@ if mode == "Configura ordine":
                         f"Height: {height_code}",
                         f"Body: {body_label}",
                         f"Engine digit: {n}",
+                        f"Transmission: {transmission_query}",
                         f"Plant scelto: {chosen_plant}"
                     ]
                     if 'selected_opts' in locals() and selected_opts:
@@ -478,8 +530,8 @@ else:
     st.info(f"Sigla generata: **{sigla_generated}**")
 
     # campi opzionali per contesto (non modificano la sigla)
-    body_input = st.text_input("Body (opzionale, es. PANEL VAN)", value="")
-    gvw_input = st.text_input("GVW (opzionale, es. 3500)", value="")
+    body_input = st.selectbox("Body (opzionale, contesto)", options=(sorted(df_B["body_label"].unique()) if df_loaded_ok(df_B) else ["PANEL VAN"]))
+    gvw_input = st.selectbox("GVW (opzionale, contesto)", options=(sorted(df_A["gvw"].unique()) if df_loaded_ok(df_A) else ["3500"]))
     engine_digit_input = st.text_input("Engine digit (opzionale, es. 5)", value="")
 
     col2 = st.columns([1])[0]
