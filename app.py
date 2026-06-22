@@ -285,7 +285,7 @@ with tab2:
     opt_input = st.text_area(
         "Incolla qui la stringa o la lista dei codici OPT da analizzare:",
         height=130,
-        placeholder="Esempio: 041, 140, 253, 316, 4bf",
+        placeholder="Esempio: 041, 140, 253, 316, 4BF",
         key="opt_checker_area"
     )
     
@@ -297,6 +297,7 @@ with tab2:
         "Autoradio / Infotainment": ["1RB", "2PX", "2PZ", "CMX", "CMY"],
         "Kit gonfiaggio (Fix&Go)": ["499"],
         "Ruota di scorta": ["980"],
+        "Gancio traino": ["734"],
     }
 
     def find_opt_in_group(vehicle_codes, group_codes, df):
