@@ -226,153 +226,153 @@ with tab1:
             st.error("Combinazione incompleta. Assicurati che tutti i menù a tendina abbiano un valore valido selezionato.")
 
 st.markdown("---")
-st.markdown("### 🔗 Compatibilità OPT ordine (con correzione automatica)")
-st.write("Seleziona il progetto (Serial Life o Euro 7), incolla la stringa OPT dell'ordine e avvia l'analisi. Il sistema segnalerà incompatibilità e must-have.")
+# st.markdown("### 🔗 Compatibilità OPT ordine (con correzione automatica)")
+# st.write("Seleziona il progetto (Serial Life o Euro 7), incolla la stringa OPT dell'ordine e avvia l'analisi. Il sistema segnalerà incompatibilità e must-have.")
 
-compat_col1, compat_col2 = st.columns([2,1])
-with compat_col1:
-    project = st.selectbox("Progetto", ["E7 (Euro 7)", "SL (Serial Life)"], key="cfg_project")
-    opt_order_input = st.text_area("Stringa OPT ordine (es. 041, 140, 253, 316, 4BF)", height=120, key="cfg_opt_order")
-    auto_apply = st.checkbox("Applica automaticamente le correzioni (rimuovi incompatibili / aggiungi must-have mancanti)", value=False, key="cfg_auto_apply")
-    analyze_compat = st.button("Analizza OPT (solo report)", key="btn_analyze_compat_report")
-with compat_col2:
-    st.info("I file usati per l'analisi devono essere presenti nella repo:\n- incompatibilità_E7.csv\n- incompatibilità_SL.csv\n- must_have_E7.csv\n- must_have_SL.csv\n\nSe mancano, il sistema mostrerà un errore.")
+# compat_col1, compat_col2 = st.columns([2,1])
+# with compat_col1:
+#     project = st.selectbox("Progetto", ["E7 (Euro 7)", "SL (Serial Life)"], key="cfg_project")
+#     opt_order_input = st.text_area("Stringa OPT ordine (es. 041, 140, 253, 316, 4BF)", height=120, key="cfg_opt_order")
+#     auto_apply = st.checkbox("Applica automaticamente le correzioni (rimuovi incompatibili / aggiungi must-have mancanti)", value=False, key="cfg_auto_apply")
+#     analyze_compat = st.button("Analizza OPT (solo report)", key="btn_analyze_compat_report")
+# with compat_col2:
+#     st.info("I file usati per l'analisi devono essere presenti nella repo:\n- incompatibilità_E7.csv\n- incompatibilità_SL.csv\n- must_have_E7.csv\n- must_have_SL.csv\n\nSe mancano, il sistema mostrerà un errore.")
 
-if analyze_compat:
-    # seleziona i file in base al progetto
-    if project.startswith("E7"):
-        inc_file = "incompatibilità_E7.csv"
-        must_file = "must_have_E7.csv"
-    else:
-        inc_file = "incompatibilità_SL.csv"
-        must_file = "must_have_SL.csv"
+# if analyze_compat:
+#     # seleziona i file in base al progetto
+#     if project.startswith("E7"):
+#         inc_file = "incompatibilità_E7.csv"
+#         must_file = "must_have_E7.csv"
+#     else:
+#         inc_file = "incompatibilità_SL.csv"
+#         must_file = "must_have_SL.csv"
 
-    inc_map = load_incompat_must(inc_file)
-    must_map = load_incompat_must(must_file)
+#     inc_map = load_incompat_must(inc_file)
+#     must_map = load_incompat_must(must_file)
 
-    # controlli esistenza file
-    missing_files = []
-    if not os.path.exists(inc_file):
-        missing_files.append(inc_file)
-    if not os.path.exists(must_file):
-        missing_files.append(must_file)
+#     # controlli esistenza file
+#     missing_files = []
+#     if not os.path.exists(inc_file):
+#         missing_files.append(inc_file)
+#     if not os.path.exists(must_file):
+#         missing_files.append(must_file)
 
-    if missing_files:
-        st.error(f"File mancanti: {', '.join(missing_files)}. Carica i CSV nella repository.")
-    else:
-        # estrai codici dall'input
-        input_codes = extract_codes_from_input(opt_order_input)
-        st.markdown(f"**Analisi su {len(input_codes)} codici inseriti**: {', '.join(input_codes) if input_codes else '—'}")
+#     if missing_files:
+#         st.error(f"File mancanti: {', '.join(missing_files)}. Carica i CSV nella repository.")
+#     else:
+#         # estrai codici dall'input
+#         input_codes = extract_codes_from_input(opt_order_input)
+#         st.markdown(f"**Analisi su {len(input_codes)} codici inseriti**: {', '.join(input_codes) if input_codes else '—'}")
 
-        # --- 1) Rileva incompatibilità dirette tra i codici inseriti
-        direct_incompat = []
-        for code in input_codes:
-            key = code.upper()
-            if key in inc_map:
-                inc_codes = inc_map[key]["codes"]
-                present = [c for c in inc_codes if c in input_codes]
-                if present:
-                    direct_incompat.append({"code": key, "conflicts": present, "raw": inc_map[key]["raw"]})
+#         # --- 1) Rileva incompatibilità dirette tra i codici inseriti
+#         direct_incompat = []
+#         for code in input_codes:
+#             key = code.upper()
+#             if key in inc_map:
+#                 inc_codes = inc_map[key]["codes"]
+#                 present = [c for c in inc_codes if c in input_codes]
+#                 if present:
+#                     direct_incompat.append({"code": key, "conflicts": present, "raw": inc_map[key]["raw"]})
 
-        # --- 2) Rileva incompatibilità reverse (altri che dichiarano incompat con i nostri)
-        reverse_incompat = []
-        for other, info in inc_map.items():
-            inter = [c for c in info["codes"] if c in input_codes]
-            if inter and other not in input_codes:
-                reverse_incompat.append({"other": other, "conflicts": inter, "raw": info["raw"]})
+#         # --- 2) Rileva incompatibilità reverse (altri che dichiarano incompat con i nostri)
+#         reverse_incompat = []
+#         for other, info in inc_map.items():
+#             inter = [c for c in info["codes"] if c in input_codes]
+#             if inter and other not in input_codes:
+#                 reverse_incompat.append({"other": other, "conflicts": inter, "raw": info["raw"]})
 
-        # --- 3) Must-have: verifica e raccogli mancanti
-        must_report = []
-        missing_must = []
-        for code in input_codes:
-            key = code.upper()
-            if key in must_map:
-                must_codes = must_map[key]["codes"]
-                present = [c for c in must_codes if c in input_codes]
-                missing = [c for c in must_codes if c not in input_codes]
-                must_report.append({"code": key, "must": must_codes, "present": present, "missing": missing, "raw": must_map[key]["raw"]})
-                if missing:
-                    missing_must.append({"code": key, "missing": missing, "raw": must_map[key]["raw"]})
+#         # --- 3) Must-have: verifica e raccogli mancanti
+#         must_report = []
+#         missing_must = []
+#         for code in input_codes:
+#             key = code.upper()
+#             if key in must_map:
+#                 must_codes = must_map[key]["codes"]
+#                 present = [c for c in must_codes if c in input_codes]
+#                 missing = [c for c in must_codes if c not in input_codes]
+#                 must_report.append({"code": key, "must": must_codes, "present": present, "missing": missing, "raw": must_map[key]["raw"]})
+#                 if missing:
+#                     missing_must.append({"code": key, "missing": missing, "raw": must_map[key]["raw"]})
 
-        # --- 4) Applicazione automatica (se richiesta) -> ma non mostriamo la lista finale
-        final_codes = input_codes.copy()
-        removals = []
-        additions = []
+#         # --- 4) Applicazione automatica (se richiesta) -> ma non mostriamo la lista finale
+#         final_codes = input_codes.copy()
+#         removals = []
+#         additions = []
 
-        if auto_apply:
-            to_remove = set()
-            for rec in direct_incompat:
-                for c in rec["conflicts"]:
-                    to_remove.add(c)
-            for rec in reverse_incompat:
-                # se l'OPT che dichiara incompatibilità è presente tra i nostri, rimuovilo
-                if rec["other"] in final_codes:
-                    to_remove.add(rec["other"])
-                for ic in rec["conflicts"]:
-                    if ic in final_codes:
-                        to_remove.add(ic)
+#         if auto_apply:
+#             to_remove = set()
+#             for rec in direct_incompat:
+#                 for c in rec["conflicts"]:
+#                     to_remove.add(c)
+#             for rec in reverse_incompat:
+#                 # se l'OPT che dichiara incompatibilità è presente tra i nostri, rimuovilo
+#                 if rec["other"] in final_codes:
+#                     to_remove.add(rec["other"])
+#                 for ic in rec["conflicts"]:
+#                     if ic in final_codes:
+#                         to_remove.add(ic)
 
-            for r in sorted(to_remove):
-                if r in final_codes:
-                    final_codes.remove(r)
-                    removals.append(r)
+#             for r in sorted(to_remove):
+#                 if r in final_codes:
+#                     final_codes.remove(r)
+#                     removals.append(r)
 
-            to_add = []
-            for rec in missing_must:
-                for m in rec["missing"]:
-                    if m not in final_codes:
-                        to_add.append(m)
-            for a in sorted(set(to_add)):
-                final_codes.append(a)
-                additions.append(a)
+#             to_add = []
+#             for rec in missing_must:
+#                 for m in rec["missing"]:
+#                     if m not in final_codes:
+#                         to_add.append(m)
+#             for a in sorted(set(to_add)):
+#                 final_codes.append(a)
+#                 additions.append(a)
 
-        # --- 5) Output report dettagliato (SENZA stringa finale con OPT risultanti)
-        st.markdown("#### 🔧 Incompatibilità rilevate (dirette)")
-        if direct_incompat:
-            for rec in direct_incompat:
-                st.markdown(f"- **{rec['code']}** incompatibile con: {', '.join(rec['conflicts'])}; presenti nell'ordine: **{', '.join(rec['conflicts'])}**")
-                if rec["raw"]:
-                    st.caption(rec["raw"])
-        else:
-            st.success("Nessuna incompatibilità diretta tra i codici inseriti.")
+#         # --- 5) Output report dettagliato (SENZA stringa finale con OPT risultanti)
+#         st.markdown("#### 🔧 Incompatibilità rilevate (dirette)")
+#         if direct_incompat:
+#             for rec in direct_incompat:
+#                 st.markdown(f"- **{rec['code']}** incompatibile con: {', '.join(rec['conflicts'])}; presenti nell'ordine: **{', '.join(rec['conflicts'])}**")
+#                 if rec["raw"]:
+#                     st.caption(rec["raw"])
+#         else:
+#             st.success("Nessuna incompatibilità diretta tra i codici inseriti.")
 
-        st.markdown("#### 🔁 Incompatibilità rilevate (reverse / da altri OPT)")
-        if reverse_incompat:
-            for rec in reverse_incompat:
-                st.markdown(f"- **{rec['other']}** dichiara incompatibilità con: {', '.join(rec['conflicts'])}; interseca con i tuoi codici: **{', '.join(rec['conflicts'])}**")
-                if rec["raw"]:
-                    st.caption(rec["raw"])
-        else:
-            st.info("Nessuna incompatibilità reverse rilevata.")
+#         st.markdown("#### 🔁 Incompatibilità rilevate (reverse / da altri OPT)")
+#         if reverse_incompat:
+#             for rec in reverse_incompat:
+#                 st.markdown(f"- **{rec['other']}** dichiara incompatibilità con: {', '.join(rec['conflicts'])}; interseca con i tuoi codici: **{', '.join(rec['conflicts'])}**")
+#                 if rec["raw"]:
+#                     st.caption(rec["raw"])
+#         else:
+#             st.info("Nessuna incompatibilità reverse rilevata.")
 
-        st.markdown("#### ✅ Must-have richiesti")
-        if must_report:
-            for rec in must_report:
-                if rec["must"]:
-                    st.markdown(f"- **{rec['code']}** richiede: {', '.join(rec['must'])}; presenti: {', '.join(rec['present']) if rec['present'] else '—'}; mancanti: {', '.join(rec['missing']) if rec['missing'] else '—'}")
-                else:
-                    st.markdown(f"- **{rec['code']}**: regola complessa o condizionale. Vedi dettaglio.")
-                if rec["raw"]:
-                    st.caption(rec["raw"])
-        else:
-            st.info("Nessun must-have rilevato per i codici inseriti.")
+#         st.markdown("#### ✅ Must-have richiesti")
+#         if must_report:
+#             for rec in must_report:
+#                 if rec["must"]:
+#                     st.markdown(f"- **{rec['code']}** richiede: {', '.join(rec['must'])}; presenti: {', '.join(rec['present']) if rec['present'] else '—'}; mancanti: {', '.join(rec['missing']) if rec['missing'] else '—'}")
+#                 else:
+#                     st.markdown(f"- **{rec['code']}**: regola complessa o condizionale. Vedi dettaglio.")
+#                 if rec["raw"]:
+#                     st.caption(rec["raw"])
+#         else:
+#             st.info("Nessun must-have rilevato per i codici inseriti.")
 
-        st.markdown("#### 🛠️ Azioni automatiche (se abilitate)")
-        if auto_apply:
-            if removals:
-                st.warning(f"Rimossi {len(removals)} codici incompatibili: {', '.join(removals)}")
-            else:
-                st.info("Nessuna rimozione necessaria.")
-            if additions:
-                st.success(f"Aggiunti {len(additions)} must-have mancanti: {', '.join(additions)}")
-            else:
-                st.info("Nessuna aggiunta necessaria.")
-            st.info("Nota: per semplicità la macchina non mostra qui la lista finale degli OPT; il report indica solo le azioni intraprese.")
-        else:
-            st.info("Modalità di sola analisi: nessuna modifica automatica applicata.")
+#         st.markdown("#### 🛠️ Azioni automatiche (se abilitate)")
+#         if auto_apply:
+#             if removals:
+#                 st.warning(f"Rimossi {len(removals)} codici incompatibili: {', '.join(removals)}")
+#             else:
+#                 st.info("Nessuna rimozione necessaria.")
+#             if additions:
+#                 st.success(f"Aggiunti {len(additions)} must-have mancanti: {', '.join(additions)}")
+#             else:
+#                 st.info("Nessuna aggiunta necessaria.")
+#             st.info("Nota: per semplicità la macchina non mostra qui la lista finale degli OPT; il report indica solo le azioni intraprese.")
+#         else:
+#             st.info("Modalità di sola analisi: nessuna modifica automatica applicata.")
 
-        st.markdown("---")
-        st.info("Report generato. Questo report contiene solo i risultati estratti dai CSV (incompatibilità e must-have) senza la stringa finale con gli OPT risultanti.")
+#         st.markdown("---")
+#         st.info("Report generato. Questo report contiene solo i risultati estratti dai CSV (incompatibilità e must-have) senza la stringa finale con gli OPT risultanti.")
 
 # =========================================================
 # TAB 2: CHECKER OPT (mantieni la logica originale quasi intatta)
