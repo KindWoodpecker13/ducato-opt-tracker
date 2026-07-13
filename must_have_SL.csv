@@ -1,9 +1,5 @@
 CODICE OPT;MUST HAVE
-129;"
-[(887 + 205 + 453  + 253 + 50E + 7KK + 026 + 7VW + 8RS) or (887 + 205 + 640  + 253 + 50E + 7KK + 026 + 8RS) on Net RV Euro Euro 6E / Euro VI E
-[(887 + 205) on Euro 5/6.1/6.4PL8
-[(453  + 253 + 50E + 8RS)] on Net RV BEV+ Camper BEV
-(887) on Camper Euro 6E / Euro VI E"
+129;[(887 + 205 + 6.40  + 253 + 50E + 7KK + 026 + 8RS) on Net RV Euro Euro 6E / Euro VI E or [(887 + 205) on Euro 5/6.1/6.4PL8 or [(453  + 253 + 50E + 8RS)] on Net RV BEV+ Camper BEV or (887) on Camper Euro 6E / Euro VI E
 901;[MBP]
 960;Nessun must have
 972;Nessun must have
@@ -11,10 +7,8 @@ CODICE OPT;MUST HAVE
 01P;Nessun must have
 022;Nessun must have
 025;Nessun must have
-026;"[8RS or (4EB + 4TI)] on Panel Van Camper ICE
-[(4EB + 4TI)] Chassis Cab, Chassis Special cab, Motor Cab Camper ICE"
-029;"[519 + 7KK] on Panel Van Euro 6E, Euro4, Euro5, Euro6.1, Euro 6.4PL8
-[519] on Bev and Hydrogen"
+026;[8RS or (4EB + 4TI)] on Panel Van Camper ICE or [(4EB + 4TI)] Chassis Cab Chassis Special cab Motor Cab Camper ICE
+029;[519 + 7KK] on Panel Van Euro 6E Euro4 Euro5 Euro6.1 Euro 6.4PL8 or [519] on Bev and Hydrogen
 02S;Nessun must have
 02T;Nessun must have
 03G;Nessun must have
@@ -24,17 +18,17 @@ CODICE OPT;MUST HAVE
 051;Nessun must have
 055;Nessun must have
 057;Nessun must have
-064;[213]
+06.4;[213]
 070;[029 + 519 + 520] su Furgoni Lastrati
 077;Nessun must have
 07E;Nessun must have
-081;"[7KK + 782] on Panel Van Euro 6E Retail and Euro 3,4,5,6.1,6.4PL8
-[7KK] on Panel Van Euro 6.4PL8"
+081;[7KK + 782] on Panel Van Euro 6E Retail and Euro 3 4 5 6.1 6.4PL8
+[7KK] on Panel Van Euro 6.4PL8
 0AA;Nessun must have
 0R2;[78D] su gamma TL 
-0TK;[835]
+0TK;[83.5]
 0TL;Nessun must have
-JZ9;[835]
+JZ9;[83.5]
 0UQ;Nessun must have
 0XW;Nessun must have
 0Y8;Nessun must have
@@ -43,45 +37,38 @@ JZ9;[835]
 140;Nessun must have
 142;Nessun must have
 143;Nessun must have
-144;[404] or [431] on light MT 3.5 Tons net RV 6E/VI E, Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
+144;[404] or [431] on light MT 3.5 Tons net RV 6E/VI E Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8
 149;Nessun must have
 197;[747] su Furgoni
 199;Nessun must have
 1CQ;Nessun must have
 1LR;Nessun must have
-1RB;[RS3] on Euro 6E retail, Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4 PL8 for Fiat and PCOV
+1RB;[RS3] on Euro 6E retail Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4 PL8 for Fiat and PCOV
 205;Nessun must have
 210;Nessun must have
-213;[064]
+213;[06.4]
 220;Nessun must have
 237;Nessun must have
 23W;Nessun must have
-253;"[7KK] on Panel Van Euro 6E,Euro 3, Euro4, Euro5, Euro6.1, Euro 6.4PL8
-[042 or 341 ] on Chassis Cab Camper"
+253;[7KK] on Panel Van Euro 6EEuro 3 Euro4 Euro5 Euro6.1 Euro 6.4PL8 or [042 or 341] on Chassis Cab Camper
 280;Nessun must have
 288;Nessun must have
 28T;Nessun must have
 292;[743]
 293;[502] for camper ICE & BEV
-297;"[454 + CJ1] on LCV except TME
-[454] on Camper & TME"
+297;[454 + CJ1] on LCV except TME or [454] on Camper & TME
 2M9;Nessun must have
 2NC;Nessun must have
 2PX;Nessun must have
-2PZ;"[140 + RS3] for Fiat and PCOV Euro 6E, Euro 3, Euro 4, Euro 5, Euro6.1, Euro 6.4 PL8
-[140 + 3YC] for Toyota and Jupiter"
-2QC;"[8RS] except for camper ICE and BEV
-[8RS + 502] for camper ICE & BEV"
+2PZ;[140 + RS3] for Fiat and PCOV Euro 6E Euro 3 Euro 4 Euro 5 Euro6.1 Euro 6.4 PL8 or [140 + 3YC] for Toyota and Jupiter
+2QC;[8RS] except for camper ICE and BEV or [8RS + 502] for camper ICE & BEV
 2QF;Nessun must have
-2V8;"[LPZ + 316] on all retail
-[LPZ + 316] on campers"
+2V8;[LPZ + 316]
 2VW;Nessun must have
-316;"[1RB or 2PZ] on Van Camper
-[2PX or 1RB or 2PZ] on  Euro 3/4/5/6.1/6.PL8"
+316;[1RB or 2PZ]
 31Q;Nessun must have
 31R;Nessun must have
-320;"[5BH o 2PX o 2PZ o 1RB o CMX o CMY] on Camper
-[(5BH o 2PX o 2PZ o 1RB] on Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4 PL8"
+320;[5BH o 2PX o 2PZ o 1RB o CMX o CMY] on Camper or [(5BH o 2PX o 2PZ o 1RB] on Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4 PL8
 32D;Nessun must have
 341;Nessun must have
 358;Nessun must have
@@ -91,44 +78,33 @@ JZ9;[835]
 392;Nessun must have
 3JO;Nessun must have
 3YC;[RTK + 2PZ]
-404;[144 or 941] on light MT  3.5 Tons net RV 6E/VI E, Euro 3, Euro4, Euro5, Euro6.1, Euro 6.4PL8
+404;[144 or 941] on light MT  3.5 Tons net RV 6E/VI E Euro 3 Euro4 Euro5 Euro6.1 Euro 6.4PL8
 40B;Nessun must have
-431;"[78D] su gamma RETE e TL escluso Cabine Motrici RETE
-[78D + 144] su Cabine Motrici RETE"
+431;[78D] su gamma RETE e TL escluso Cabine Motrici RETE or [78D + 144] su Cabine Motrici RETE
 453;[8RS + 026] 
 454;[297] 
 475;Nessun must have
 48D;Nessun must have
 498;Nessun must have
-499;"[5SB] on Toyota
-[8FP] on Camper
-[5SB + 8F5 o 5SB + 8F6 o 5SB + 8F7 o 5SB + 8F8 o 5SB + 8FA o 5SB + 8FP o 5SB + 8H7] on Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8"
+499;[5SB] on Toyota or [8FP] on Camper or [5SB + 8F5 o 5SB + 8F6 o 5SB + 8F7 o 5SB + 8F8 o 5SB + 8FA o 5SB + 8FP o 5SB + 8H7] on Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8
 4B0;Nessun must have
 4BJ;Nessun must have
 4DH;Nessun must have
 4DZ;Nessun must have
-4EA;"[A2Q or A2R] on Dropside single  cab
-[A2Q] on Dropside double cab  "
-4EB;"[4TI+72X] on Net RV excluded Am250
-[4TI] on Camper"
+4EA;[A2Q or A2R] on Dropside single cab or [A2Q] on Dropside double cab  
+4EB;[4TI+72X] on Net RV excluded Am250 or [4TI] on Camper
 4EV;[7B2 + 980]
 4FP;Nessun must have
-4GM;"[A2Q or A2R] on Dropside single  cab
-[A2Q] on Dropside double cab  "
+4GM;[A2Q or A2R] on Dropside single cab or [A2Q] on Dropside double cab  
 4GP;[4GQ + 4N5 + J2J] or [4GQ + 7Q5 + J2J] 
 4GQ;[4GP + 4N5 + J2J] or [4GP + 7Q5 + J2J] 
-4GS;"(743) on Chassis Cab 35q NET RV 
-(743 + 0TL) on Chassis Cab 40q NET RV "
-4GT;"[081+72X] sugamma Rete Furgoni
-[72X] su gamma Furgoni Vetrati e SemiVetrati Rete
-[743] su Chassis Cabi RETE "
+4GS;(743) on Chassis Cab 3.5q NET RV  or (743 + 0TL) on Chassis Cab 40q NET RV 
+4GT;[081+72X] sugamma Rete Furgoni or [72X] su gamma Furgoni Vetrati e SemiVetrati Rete or [743] su Chassis Cabi RETE 
 4H2;Nessun must have
 4HB;Nessun must have
 4HH;Nessun must have
 4MZ;Nessun must have
-4N5;"(4TI+4EB+7WV) on Panel Van (TL), Chassis Cab (TL), Chassis Cab Special (TL), Motor Cab (TL)  ICE Camper
-(4TI+4EB) on Panel Van (TL), Chassis Cab (TL) on BEV Camper
-[(4GP+4GQ) o 9EW] su Cowl (TL), Motor Cowl (TL), Cowl Special (TL)"
+4N5;(4TI+4EB+7WV) on ICE Camper or (4TI+4EB) on BEV Camper
 4NF;Nessun must have
 4P4;[7Q5]
 4TD;[2PZ]
@@ -138,13 +114,11 @@ JZ9;[835]
 4YV;Nessun must have
 500;Nessun must have
 502;[293 or 2QC or 9VX]
-505;[(297 + 835 + CJ1 + 8RS + 454 + 026) or (297 + 835 + CJ1 + 8RS + 454 + 453 + 026)
+505;[(297 + 83.5 + CJ1 + 8RS + 454 + 026) or (297 + 83.5 + CJ1 + 8RS + 454 + 453 + 026)
 508;Nessun must have
-50E;"[8RS] on Euro 6E Retail, Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4 PL8
-[8RS or 732 or 4N5 or 7Q5] on Panel Van Camper ICE"
+50E;[8RS] on Euro 6E Retail Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4 PL8 or [8RS or 732 or 4N5 or 7Q5] on Panel Van Camper ICE
 516;Nessun must have
-519;"[029 + 7KK] su Furgone Lastrato Euro 6E, Euro4, Euro5, Euro6.1, Euro 6.4PL8
-[029] on Bev and Hydrogen"
+519;[029 + 7KK] su Furgone Lastrato Euro 6E Euro4 Euro5 Euro6.1 Euro 6.4PL8 or [029] on Bev and Hydrogen
 51Q;Nessun must have
 520;Nessun must have
 52X;Nessun must have
@@ -161,17 +135,14 @@ JZ9;[835]
 5EV;Nessun must have
 5F4;Nessun must have
 5F5;Nessun must have
-5F6;[5F4 ] on N2 versions Euro 6E Camper
+5F6;[5F4] on N2 versions Euro 6E Camper
 5F7;Nessun must have
-5F8;"[LPZ] on Euro 6E/VI E, BEV  NET RV
-[(LPZ + 320 + 5BH) or (LPZ + 320 +1RB) or (320 + 2PZ + LPZ) or (320 + CMX + LPZ) or ( 320 + CMY + LPZ)] on CAMPER
-[LPZ + 5F4 + 2PX] o [LPZ + 5F4 + 2PZ] o [LPZ + 5F4 + 1RB] on Euro 6.1"
+5F8;[LPZ] on Euro 6E/VI E BEV  NET RV or [(LPZ + 320 + 5BH)] on CAMPER or [LPZ + 5F4 + 2PX] on Euro 6.1
 5K8;Nessun must have
 5KA;Nessun must have
 5KC;Nessun must have
 5KK;Nessun must have
-5SB;"[499] su Euro 3,  Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
-[499] on Toyota"
+5SB;[499] su Euro 3  Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8 or [499] on Toyota
 5SF;[7B2 + 980]
 5V6;[5V7]
 5V7;Nessun must have
@@ -189,7 +160,7 @@ JZ9;[835]
 640;[8RS + 026] 
 644;Nessun must have
 64E;[8FP] su gamma TL
-650;[835] 
+650;[83.5] 
 692;Nessun must have
 6BX;Nessun must have
 6C1;Nessun must have
@@ -197,7 +168,7 @@ JZ9;[835]
 6HN;Nessun must have
 6HP;Nessun must have
 6HQ;Nessun must have
-6JA;[742 o 745] su Cabinato (TL), Cabinato Special (TL), Scudato, Scudato Special
+6JA;[742 o 745] su Cabinato (TL) Cabinato Special (TL) Scudato Scudato Special
 6L3;Nessun must have
 6QD;Nessun must have
 6QZ;Nessun must have
@@ -211,12 +182,10 @@ JZ9;[835]
 708;Nessun must have
 727;[293]
 72X;7MB on Toyota & Iveco N1 versions
-732;"[(4TI + 4EB+7WV) o 0QB o 0QD o 38J] on Panel Van (TL),  Chassis Cab (TL), Notor Cab (TL), Chassis Cab Special (TL) ICE Camper
-[(4TI+4EB) o 0QB o 0QD o 38J] on Panel Van (TL), Chassis Cab (TL) on BEV Camper"
+732;[(4TI + 4EB+7WV) o 0QB o 0QD o 38J] on ICE Camper or [(4TI+4EB) o 0QB o 0QD o 38J] on BEV Camper
 734;Nessun must have
 738;Nessun must have
-739;"[RDG + 5F4]  on Camper and Euro 3, Euro 4, Euro5, Euro 6.1, Euro 6.4PL8 Fiat + PCOV + Toyota
-[RDG + RTR + 5F4] for Toyota and Jupiter "
+739;[RDG + 5F4]  on Camper and Euro 3 Euro 4 Euro5 Euro 6.1 Euro 6.4PL8 Fiat + PCOV + Toyota or [RDG + RTR + 5F4] for Toyota and Jupiter 
 742;Nessun must have
 743;Nessun must have
 745;Nessun must have
@@ -227,10 +196,8 @@ JZ9;[835]
 75H;Nessun must have
 75J;Nessun must have
 75M;Nessun must have
-75N;[4NF] on Chassis Cowl, Motor Cowls Camper
-75Q;"[297+454 o 4TH] on all the range except Camper
-[BK8] on Van, Chassis Cab, Motor Cab Camper
-[5BH] on Chassis Cowl, Motor Cowls Camper"
+75N;[4NF] on Chassis Cowl Motor Cowls Camper
+75Q;[297+454 o 4TH] on all the range except Camper or [BK8] on Van Chassis Cab Motor Cab Camper or [5BH] on Chassis Cowl Motor Cowls Camper
 77P;Nessun must have
 782;Nessun must have
 786;[980]
@@ -241,18 +208,13 @@ JZ9;[835]
 7B2;Nessun must have
 7H4;Nessun must have
 7KK;Nessun must have
-7MB;[782 + 7KK]  on Panel Van Euro 6E Retail and Euro 3,4,5,6.1,6.4PL8
+7MB;[782 + 7KK]  on Panel Van Euro 6E Retail and Euro 3456.16.4PL8
 7P7;Nessun must have
 7PC;Nessun must have
-7Q5;"[(4TI + 4EB + 7WV) o 0QB o 0QD] on PCOV Camper Panel Van, Chassis Cab, Chassis Cab Special, Motor Cab ICE
-[(4TI + 4EB + 7WV) o 0QB o 0QD o 4P4] on FIAT Camper Panel Van, Chassis Cab, Chassis Cab Special, Motor Cab ICE
-[(4TI + 4EB) o 0QB o 0QD] on PCOV Camper Panel Van, Chassis Cab, Chassis Cab BEV
-[(4TI + 4EB) o 0QB o 0QD o 4P4] on PCOV Camper Panel Van, Chassis Cab, Chassis Cab Special, Motor Cab ICE"
+7Q5;[(4TI + 4EB + 7WV)
 7SH;Nessun must have
 7UY;Nessun must have
-7WV;"[8RS] on Euro 6E Retail, Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4 PL8
-[8RS or 732 or 4N5 or 7Q5] Camper ICE
-[8RS or 727] net RV"
+7WV;[8RS] on Euro 6E Retail Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4 PL8 or [8RS or 732 or 4N5 or 7Q5] Camper ICE or [8RS or 727] net RV
 7XV;Nessun must have
 802;Nessun must have
 823;Nessun must have
@@ -271,30 +233,23 @@ JZ9;[835]
 887;[129]
 898;Nessun must have
 8A3;Nessun must have
-8EJ;"[2PX o  2PZ o 38J o 1RB]  su  Euro 3,  Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
-[1RB or 2PZ] on Camper
-"
-8F5;[499] su Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
-8F6;[499] su Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
-8F7;[499] su Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
-8F8;[499] su Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
-8F9;[499] su Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
-8FA;[499] su Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
-8FP;[499] su Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
-8H7;[499] su Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
-8JP;"[(2QF+026+320+LPZ+8RS+051) o (2QF+026+320+LPZ+727+051)] on BEV, HYDROGEN, EURO 6E NET RV, CAMPER
-(2QF+026+320+LPZ+051) on CAMPER
-[(2QF+026+320+LPZ+8RS+2PX+051) o (2QF+026+320+LPZ+727+2PZ+051)  o (2QF+026+320+LPZ+727+1RB+051) o (2QF+026+320+LPZ+8RS+1RB+051) o
-(2QF+026+320+LPZ+727+2PZ+051) o (2QF+026+320+LPZ+8RS+2PZ+051)]   on Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4 PL8"
+8EJ;[2PX o  2PZ o 38J o 1RB]  su  Euro 3  Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8 or [1RB o 2PZ] on Camper
+8F5;[499] su Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8
+8F6;[499] su Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8
+8F7;[499] su Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8
+8F8;[499] su Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8
+8F9;[499] su Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8
+8FA;[499] su Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8
+8FP;[499] su Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8
+8H7;[499] su Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8
+8JP;(2QF+026+320+LPZ+051) on CAMPER or [(2QF+026+320+LPZ+8RS+2PX+051)] on Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4 PL8
 8JU;Nessun must have
-8RS;"[+2QC+50E] or [+297+454+50E] net RV
-[7WV] Camper "
+8RS;[2QC+50E] or [297+454+50E] net RV or [7WV] Camper 
 8X7;[8XD]
 8XD;Nessun must have
 8ZJ;[4P4]
 92P;Nessun must have
-941;"[144] on all BEV net RV, Hydrogen, light AT and Heavy net RV 6E/VI E, Euro 3, Euro4, Euro 5, Euro 6.1, Euro 6.4PL8
-[144+404] or [144+431] on light MT net RV 6E/VI E, Euro 3, Euro4, Euro5, Euro6.1"
+941;[144+404]
 943;Nessun must have
 947;Nessun must have
 980;[786] on retail versions except Motor Cab Retail
@@ -302,18 +257,14 @@ JZ9;[835]
 9EW;Nessun must have
 9RV;Nessun must have
 9WE;Nessun must have
-A2Q;"[BXQ + 4EA] on BEV 
-[4EA + 4GM + 4HB] on ICE"
-A2R;"[BXQ + 4EA] on BEV 
-[4EA + 4GM + 4HB] on ICE"
-A84;"[742 o 745 o 292] su Cabinato Rete
-[742 o 745] su Doppia Cabina, Cabinato (TL) e Scudato (TL)"
-A8J;"[72X] or [JCQ] or [JC3] su Furgoni Vetrati e Semi Vetrati Rete
-[72X + 520] or [JCQ + 520] or [JC3 + 520] su Furgoni Lastrati  Rete"
+A2Q;[BXQ + 4EA] on BEV  or [4EA + 4GM + 4HB] on ICE
+A2R;[BXQ + 4EA] on BEV or [4EA + 4GM + 4HB] on ICE
+A84;[742 o 745 o 292]
+A8J;[72X] or [JCQ] su Furgoni Vetrati e Semi Vetrati Rete or [72X + 520] su Furgoni Lastrati  Rete
 A8K;Nessun must have
 A8Z;[051+RTR o 5F8+RTR]
 AWN;Nessun must have
-AX9;[077 + 6JA] on Euro 6E Retail, Euro3, Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
+AX9;[077 + 6JA] on Euro 6E Retail Euro3 Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8
 AYK;[8RS o 727 o (453+026+8RS)]
 AYN;[0QD o 9EW o (4TI+4EB+50E) o (4GP+4GQ)]
 B84;Nessun must have
@@ -326,52 +277,37 @@ BPH;[8RS]
 CH8;[C3X + C8Q] on BEV
 BXQ;[A2Q or A2R or C3X] on BEV
 BXR;[Z6L or JC3 or JCQ] on BEV
-C3X;"[4GM + 54Q + 391 + 1RB + RS3 + 4HH] or [4GM + 54Q + 391 + 2PZ + RS3 + 4HH] on Euro 6E, Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
-[54Q + 391 + BXQ + 4HH] or  [54Q + 391 + CH8 + C8Q + 4HH] on BEV"
-C3Y;"[4GM + 54Q + 391 + C8Q + 4EA + 1RB + RS3 + 4HH] or [4GM + 54Q + 391 + C8Q + 4EA + 2PZ + RS3 + 4HH] on Euro 6E, Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
-[54Q + 391 + C8Q + 4EA + BBP + 4HH] on BEV"
-C8N;"[4GM + 54Q + 391 + C3X] or [4GM + 54Q + 391 + C3Y] on Euro 6E, Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
-[54Q + 391 + C3X] or [54Q + 391 + C3Y] on BEV"
-C8P;"[4GM + 54Q + 391 + C3X] or [4GM + 54Q + 391 + C3Y] on Euro 6E, Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
-[54Q + 391 + C3X] or [54Q + 391 + C3Y] on BEV"
-C8Q;"[4GM + 54Q + 391 + C3X + 4EA] or [4GM + 54Q + 391 + C3Y + 4EA] on Euro 6E, Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
-[54Q + 391 + C3X + 4EA + CH8] or [54Q + 391 + C3Y + 4EA + BBP] on BEV"
+C3X;[4GM + 54Q + 391 + 1RB + RS3 + 4HH] or [4GM + 54Q + 391 + 2PZ + RS3 + 4HH] on Euro 6E Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8 or [54Q + 391 + BXQ + 4HH] or  [54Q + 391 + CH8 + C8Q + 4HH] on BEV
+C3Y;[4GM + 54Q + 391 + C8Q + 4EA + 1RB + RS3 + 4HH] or [4GM + 54Q + 391 + C8Q + 4EA + 2PZ + RS3 + 4HH] on Euro 6E Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8 or [54Q + 391 + C8Q + 4EA + BBP + 4HH] on BEV
+C8N;[4GM + 54Q + 391 + C3X] on Euro 6E Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8 or [54Q + 391 + C3X] on BEV
+C8P;[4GM + 54Q + 391 + C3X] on Euro 6E Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8 or [54Q + 391 + C3X] or [54Q + 391 + C3Y] on BEV
+C8Q;[4GM + 54Q + 391 + C3X + 4EA] on Euro 6E Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8 or [54Q + 391 + C3Y + 4EA + BBP] on BEV
 CJ1;[297+454 o 4GQ o 4TI o 0QB o 0QD o 38J o 9EW o 4P4]
-GRG;"[316] on all Vans except Van Campers
-[316+1RB or 316+2PZ] on Camper"
-GX4;[026] on Van, Chassis Cab Camper excluded Am250
+GRG;[316] on all Vans except Van Campers or [316+1RB] on Camper
+GX4;[026] on Van Chassis Cab Camper excluded Am250
 JKU;Nessun must have
 LHA;Nessun must have
 LPZ;Nessun must have
-MBP;"[901] on Camper FIAT, PEUGEOT, CITROEN, TOYOTA
-[901 + LPZ] on Bev. hydrogen, Euro 6E, Euro 3,  Euro 4, Euro 5, Euro 6.1, Euro 6.4 PL8 Retail FIAT, PEUGEOT, CITROEN, TOYOTA
-[901 + MM5] on Camper OPEL
-[901 + LPZ + MM5] on Bev. hydrogen, Euro 6E, Euro 3,  Euro 4, Euro 5, Euro 6.1, Euro 6.4 PL8 Retail OPEL"
+MBP;[901] on Camper FIAT PEUGEOT CITROEN TOYOTA
 MM5;[6HN o 6HP]
 MM6;[700 o 702 o 6HN o 6HP]
 MMK;Nessun must have
 MNG;Nessun must have
 NHR;Nessun must have
-RDG;"[(2PZ+RTK+739+5F4) or (1RB + RTK+739+5F4) or (2PX+RTK+739+5F4)] on Camper and Euro 3, Euro 4, Euro5, Euro 6.1, Euro 6.4PL8 Fiat + PCOV 
-[RTR] for Toyota and Jupiter "
+RDG;[(2PZ+RTK+739+5F4)] on Camper and Euro 3 Euro 4 Euro5 Euro 6.1 Euro 6.4PL8 Fiat + PCOV or [RTR] for Toyota and Jupiter 
 RFX;[140]
-RS3;[2PZ or 1RB] on Euro 6E retail, for Fiat and PCOV
-RTK;"[(RDG + 2PZ + 739) o (RDG + 1RB + 739) or (RDG + 2PX + 739)] for Fiat and PCOV
-[(RDG + 2PZ + RTR + 739) o (RDG + 1RB + RTR + 739) or (RDG + 2PX + RTR + 739)] for Toyota and Jupiter"
+RS3;[2PZ or 1RB] on Euro 6E retail for Fiat and PCOV
+RTK;[(RDG + 2PZ + 739)] for Fiat and PCOV or [(RDG + 2PZ + RTR + 739)] for Toyota and Jupiter
 RTR;[RDG + A8Z] or [RDG + CPK]
 RTS;[RDG]
 XAN;[341]
-XCP;[293 or 2QC or 297+454 or 9VX] on BEV, Hydrogen, Euro 6E Retail, Euro 3, Euro 4, Euro 5, Euro 6.1, Euro 6.4PL8
+XCP;[293 or 2QC or 297+454 or 9VX] on BEV Hydrogen Euro 6E Retail Euro 3 Euro 4 Euro 5 Euro 6.1 Euro 6.4PL8
 XFC;Nessun must have
 XL4;Nessun must have
 XLE;Nessun must have
 XR8;Nessun must have
 Z1G;Nessun must have
-Z6L;"[516] on Half Glazed Van and  on Euro 6E, 3, 4, 5, 6.1, 6.4PL8
-[520] on Panel Van L4H2 on Euro 6E, 3, 4, 5, 6.1, 6.4PL8
-
-[516] on Half Glazed Van on BEV
-[520] on Panel Van on BEV"
+Z6L;[520] on Panel Van L4H2 on Euro 6E 3 4 5 6.1 6.4PL8 BEV or [516] on Half Glazed Van on BEV
 5R8;[081]
 C7B;[8RS o 727 o (453+026+8RS)]
 C7C;[8RS o 727 o (453+026+8RS)]
@@ -379,25 +315,16 @@ AYP;[9WE o 9Z4]
 AYQ;[9WE o 9Z4]
 BBP;[C3Y + C8Q] on BEV
 CK1;[5F4] on Motor Cab versions 
-CMW;"[1RB+RS3+8EJ] or [2PZ+RS3+140+8EJ] on Chassis Single Cab and Chassis Double Cab RETAIL
-[8EJ+1RB] or [8EJ+2PZ] on Camper"
+CMW;[2PZ+RS3+140+8EJ] on Chassis Single Cab and Chassis Double Cab RETAIL or [8EJ+2PZ] on Camper
 CPK;[051+RTR+1CQ]
 J7R;[700]
 J2J;[4GP] or [4GQ] or [4TI]
 9VX;[502] for camper ICE & BEV
-J48;[AX9 + 077 + 6JA] on Euro 6E Retail, Euro3, Euro 4, Euro 5, Euro 6.1
+J48;[AX9 + 077 + 6JA] on Euro 6E Retail Euro3 Euro 4 Euro 5 Euro 6.1
 J5L;Nessun must have
 J5M;[J5L]
-JC3;"[516 + A8J] on Half Glazed Van and  on Euro 6E, 3, 4, 5, 6.1, 6.4PL8
-[520 + A8J] on Panel Van L4H2 on Euro 6E, 3, 4, 5, 6.1, 6.4PL8
-
-[516 + A8J] on Half Glazed Van on BEV
-[520 + A8J] on Panel Van on BEV"
-JCQ;"[516 + A8J] on Half Glazed Van and  on Euro 6E, 3, 4, 5, 6.1, 6.4PL8
-[520 + A8J] on Panel Van L4H2 on Euro 6E, 3, 4, 5, 6.1, 6.4PL8
-
-[516 + A8J] on Half Glazed Van on BEV
-[520 + A8J] on Panel Van on BEV"
+JC3;[516 + A8J] on Half Glazed Van BEV and on Euro 6E 3 4 5 6.1 6.4PL8 or [520 + A8J] on Panel Van BEV and L4H2 on Euro 6E 3 4 5 6.1 6.4PL8
+JCQ;[516 + A8J] on Half Glazed Van BEV and on Euro 6E 3 4 5 6.1 6.4PL8 or [520 + A8J] on Panel Van BEV and L4H2 on Euro 6E 3 4 5 6.1 6.4PL8
 JCR;[JC3 or JCQ]
 JJ1;[C3X or C3Y + C8N + C8P + C8Q]
 JJ0;[081] on Panel van
