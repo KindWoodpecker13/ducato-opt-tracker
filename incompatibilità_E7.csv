@@ -1,13 +1,11 @@
-CODICE OPT;INCOMPATIBILIT¿
+CODICE OPT;INCOMPATIBILIT√Ä
 02T;[081 - 782 - 7MB]
-055;"[62E - Z6L - AXF - 640]
-[070 - 62E - Z6L - AXF - 640] on Glazed and Half Glazed L3-L4
-[62E - Z6L - AXF - 640] on Glazed and Half Glazed L2"
+055;[62E - Z6L - AXF - 640]
 081;[02S - 02T]
-0BX;Nessuna incompatibilit‡
+0BX;Nessuna incompatibilit√†
 140;[025 - 57A - CMX - CMY]
 1RB;[2PX - 2PZ - 6QD - 3JO - 5BH - 4HE - CMX - CMY - 1RC]
-237;Nessuna incompatibilit‡
+237;Nessuna incompatibilit√†
 2PX;[3JO - 2PZ - 5BH - 6QD  - 1RB - 4HE - CMX - CMY - CMW - 1RC]
 2PZ;[3JO - 2PX - 75Q - 5BH - 6QD - 57A - 1RB - 4HE - CMX - CMY - 1RC]
 316;[75M - 8EJ - 4HE - C3X - C3Y - C8N - C8P - C8Q - CMW -CMX -CMY]
@@ -16,46 +14,44 @@ CODICE OPT;INCOMPATIBILIT¿
 58E;[4XH - XR8 - 5BF - CTU]
 5BF;[XR8 - 58E - CTU]
 5BH;[2PX - 2PZ - 8EJ - 1RB - CMX - CMY - 1RC]
-5EM;Nessuna incompatibilit‡
-5KA;Nessuna incompatibilit‡
-5KC;Nessuna incompatibilit‡
-5KK;Nessuna incompatibilit‡
+5EM;Nessuna incompatibilit√†
+5KA;Nessuna incompatibilit√†
+5KC;Nessuna incompatibilit√†
+5KK;Nessuna incompatibilit√†
 640;[132 - 727 - 4EB - 453 - 505 - 4P4 - 4TI - 4GP - 7Q5  - 7WV - Z6L - 055 - 72X - 292 - JCQ - JC3]
 6QD;[3JO - 2PX - 2PZ - 8EJ - 1RB - 4HE - CMX - CMY - 1RC]
 72X;[149 - 199 - 4MZ - 8XD - 5V7 - 5V6 - 8X7 - 640] 
-75H;Nessuna incompatibilit‡
-802;Nessuna incompatibilit‡
-823;Nessuna incompatibilit‡
-850;Nessuna incompatibilit‡
-851;Nessuna incompatibilit‡
-852;Nessuna incompatibilit‡
-853;Nessuna incompatibilit‡
-856;Nessuna incompatibilit‡
-898;Nessuna incompatibilit‡
-8PA;Nessuna incompatibilit‡
+75H;Nessuna incompatibilit√†
+802;Nessuna incompatibilit√†
+823;Nessuna incompatibilit√†
+850;Nessuna incompatibilit√†
+851;Nessuna incompatibilit√†
+852;Nessuna incompatibilit√†
+853;Nessuna incompatibilit√†
+856;Nessuna incompatibilit√†
+898;Nessuna incompatibilit√†
+8PA;Nessuna incompatibilit√†
 GRG;[CMX -CMY]
-MNG;Nessuna incompatibilit‡
+MNG;Nessuna incompatibilit√†
 RFX;[57A - CMX - CMY]
-RS3;Nessuna incompatibilit‡
+RS3;Nessuna incompatibilit√†
 XR8;[8A3 - 58E - 5BF - CTU]
 Z6L;[149 - 199 - 361 - 4FP - 4GT - 727 - 7MB  -  5V6 - 5V7  - 8XD - LHA - A8J - 4G8 - 055 - 640]
 CMX;[2PX - 2PZ - 6QD - 3JO - 5BH - 4HE - 1RB - 140 - CMY - RFX - 316 - GRG - 8EJ - 1RC]
 CMY;[2PX - 2PZ - 6QD - 3JO - 5BH - 4HE - 1RB - 140 - CMX - RFX - 316 - GRG - 8EJ - 1RC]
-CPK;"[700 - 702 - 701 - 6HN - 6HP - 75Q - A8J - 4GT - A8Z] on N1 Van versions Jupiter
-[700 - 702 - 701 - 6HN - 6HP - 75Q - A8Z] on all the rest of the range except N1 Vans Jupiter"
+CPK;[700 - 702 - 701 - 6HN - 6HP - 75Q - A8J - 4GT - A8Z] on N1 Van versions Jupiter
 129;[022 - 121 - 7UY - 6QZ - 6R0 - 727 - 4MZ]
 201;[AJ6]
 901;[4WH - 4BJ]
-972;Nessuna incompatibilit‡
+972;Nessuna incompatibilit√†
 007;[03F]
-01P;Nessuna incompatibilit‡
+01P;Nessuna incompatibilit√†
 022;[129]
 025;[140]
-026;"[132 - 297 - 454] ON RANGE CAMPER
-[4MZ] ON RANGE BEV, Euro 7 Net RV"
+026;[132 - 297 - 454] ON RANGE CAMPER or [4MZ] ON RANGE BEV, Euro 7 Net RV
 029;[516 -  02S - AXF]
 02S;[081 - 253 - 029 - 7KK - 7MB]
-03C;Nessuna incompatibilit‡
+03C;Nessuna incompatibilit√†
 03F;[007]
 03G;[431 - 0R2 - 1LR - 5EV]
 041;[220]
@@ -65,20 +61,18 @@ CPK;"[700 - 702 - 701 - 6HN - 6HP - 75Q - A8J - 4GT - A8Z] on N1 Van versions Ju
 051;[57A  - 38C]
 057;[077 - 4GM - 78Z - A2Q - A2R - C3X - C3Y - C8N - C8P - C8Q]
 064;[4YR]
-070;"[055 - 62E] on Glazed and Half Glazed L3-L4
-[62E - 5SF - 4EV]"
+070;[055 - 62E] on Glazed and Half Glazed L3-L4 or [62E - 5SF - 4EV]
 077;[ 4GM - 057 - 78Z - A2Q - A2R - C3X - C3Y - C8N - C8P - C8Q]
-07E;Nessuna incompatibilit‡
+07E;Nessuna incompatibilit√†
 0AA;[2NC]
 0R2;[431 - 878 - 03G - 1LR - 5EV - 280]
 0TK;[650 - 0TL - 62E]
 0TL;[0TK - 650]
-0UQ;Nessuna incompatibilit‡
-0WV;Nessuna incompatibilit‡
-0XW;Nessuna incompatibilit‡
-121;Nessuna incompatibilit‡
-132;"[640 - 4P4 - 4TI - 4GP - 7Q5] ON RANGE BEV, Euro 7 Net RV
-[640 - 4P4 - 4TI - 4GP - 7Q5 - 026] ON RANGECAMPER"
+0UQ;Nessuna incompatibilit√†
+0WV;Nessuna incompatibilit√†
+0XW;Nessuna incompatibilit√†
+121;Nessuna incompatibilit√†
+132;[640 - 4P4 - 4TI - 4GP - 7Q5] ON RANGE BEV, Euro 7 Net RV or [640 - 4P4 - 4TI - 4GP - 7Q5 - 026] ON RANGECAMPER
 142;[144 - 5PP - 28T]
 144;[62E - 142  - 5PP - 28T]
 149;[4GT  - 199  - 4GP - 4GQ  - 72X - Z6L - A8J]
@@ -93,21 +87,18 @@ CPK;"[700 - 702 - 701 - 6HN - 6HP - 75Q - A8J - 4GT - A8Z] on N1 Van versions Ju
 280;[431 - 1LR - 5EV - 78D - 0R2]
 288;[391 - A2Q - A2R - AX9 - B84 - C3X - C3Y - C8N - C8P - C8Q]
 28T;[142 - 144 - 5PP - 03E]
-292;"[4GS - 57A - A2Q - A2R - 505 - C3X - C3Y  - C8N - C8P - C8Q - 640]
-[NON DISPONIBILE SU CABINATI PASSO ML 3800mm]"
+292;[4GS - 57A - A2Q - A2R - 505 - C3X - C3Y  - C8N - C8P - C8Q - 640]
 293;[505 - 297 - 4EB - 4GS - 4GP - 4GQ - 4P4 - 454 - 4TI - CJ1 - 7Q5 - 2QC - 732 ]
-297;"[2QC - 4P4 - 4TI - 4GQ - 7Q5 - 502 - 4GP - 293 - 6QZ - 727 - C3X - C3Y- 9VX]  on NET RV BEV
-[2QC - 4P4 - 4TI - 4GQ - 7Q5 - 502 - 4GP - 293 - 6QZ - 727 - 9VX]  on NET RV ICE
- [4P4 - 4TI - 4GQ - 7Q5 - 4GP - 38J - 6QZ - 026 - 9VX]  on CAMPER"
-2M9;Nessuna incompatibilit‡
+297;[2QC - 4P4 - 4TI - 4GQ - 7Q5 - 502 - 4GP - 293 - 6QZ - 727 - C3X - C3Y- 9VX]  on NET RV BEV or [2QC - 4P4 - 4TI - 4GQ - 7Q5 - 502 - 4GP - 293 - 6QZ - 727 - 9VX]  on NET RV ICE or [4P4 - 4TI - 4GQ - 7Q5 - 4GP - 38J - 6QZ - 026 - 9VX]  on CAMPER
+2M9;Nessuna incompatibilit√†
 2NC;[0AA]
 2QC;[505 - 297  - 4EB - 4GS - 4GP - 4GQ - 4P4 - 454  - 4TI - CJ1 - 7Q5 - 293 - 732 - 727 - 9VX] 
-2QF;Nessuna incompatibilit‡
+2QF;Nessuna incompatibilit√†
 2V8;[508]
-2VW;Nessuna incompatibilit‡
-31Q;Nessuna incompatibilit‡
-31R;Nessuna incompatibilit‡
-320;Nessuna incompatibilit‡
+2VW;Nessuna incompatibilit√†
+31Q;Nessuna incompatibilit√†
+31R;Nessuna incompatibilit√†
+320;Nessuna incompatibilit√†
 341;[042 - 220]
 358;[359 - A2Q - A2R - AX9]
 359;[358]
@@ -117,15 +108,11 @@ CPK;"[700 - 702 - 701 - 6HN - 6HP - 75Q - A8J - 4GT - A8Z] on N1 Van versions Ju
 3C0;[3C1 - 3C2 - 3C3 - 3C4]
 3C1;[3C0 - 3C2 - 3C3 - 3C4]
 3C2;[3C0 - 3C1 - 3C3 - 3C4 ]
-3JO;"[54Q - 6QD - 2PX - 2PZ - 8EJ - 220 - 1RB - CMX - CMY]  ON RANGE Euro 7E Camper
-[RDG]"
+3JO;[54Q - 6QD - 2PX - 2PZ - 8EJ - 220 - 1RB - CMX - CMY]  ON RANGE Euro 7E Camper or [RDG]
 3YC;[4GS]
 431;[878 - 03G - 0R2 - 1LR - 5EV]
 453;[640 - 4P4 - 4EB - 4GP - 4TI  - 9RV - 7Q5  - 727]
-454;"[502 - 950 - 727 - 4P4 - 2QC  - 4GP - 4GQ - 4TI - 293 - 6QZ - C3X - C3Y - 9VX] on NET RV BEV
-[502 - 950 - 727 - 4P4 - 2QC  - 4GP - 4GQ - 4TI - 293 - 6QZ - 9VX] on NET RV ICE
-[4P4 - 4GP - 4GQ - 4TI - 6QZ - 026 - 9VX] son CAMPER
-"
+454;[502 - 950 - 727 - 4P4 - 2QC  - 4GP - 4GQ - 4TI - 293 - 6QZ - C3X - C3Y - 9VX] on NET RV BEV or [502 - 950 - 727 - 4P4 - 2QC  - 4GP - 4GQ - 4TI - 293 - 6QZ - 9VX] on NET RV ICE or [4P4 - 4GP - 4GQ - 4TI - 6QZ - 026 - 9VX] son CAMPER
 475;[A2Q - A2R]
 48D;[51Q - 6QZ - 6R0 - 943 - 83H - Z1G - BBP - BXQ - CH8]
 498;[197 - 747]
@@ -142,11 +129,10 @@ CPK;"[700 - 702 - 701 - 6HN - 6HP - 75Q - A8J - 4GT - A8Z] on N1 Van versions Ju
 4GP;[505 - 132 - 640 - 453 - 149 - 199 - 297 - 2QC - 454 - 4EB - 50E - 727 - 4P4 - 4TI - 293 - 9EW - 6QZ - 7WV - 8ZJ - 9VX]
 4GQ;[505 - 297 - 2QC - 149 - 199 - 454 - 4EB - 50E - 727 - 4P4 - 4TI - 293 - 9EW - 6QZ - 7WV - 8ZJ - 9VX]
 4GS;[505 - 2QC - 292 - 293 - 835 - 9VX]
-4GT;"[149 - 199 - Z6L - 8XD - 5V7 - 5V6 - 8X7] on all the range except N1 Toyota Van versions
-[149 - 199 - Z6L - 8XD - 5V7 - 5V6 - 8X7 - A8Z] on N1 Toyota Van versions"
+4GT;[149 - 199 - Z6L - 8XD - 5V7 - 5V6 - 8X7] on all the range except N1 Toyota Van versions or [149 - 199 - Z6L - 8XD - 5V7 - 5V6 - 8X7 - A8Z] on N1 Toyota Van versions
 4H2;[AX9 - A2Q - A2R  - C8N - C8P - C8Q]
 4HB;[A84 - 960 - 6JA - AX9]
-4HH;Nessuna incompatibilit‡
+4HH;Nessuna incompatibilit√†
 4MZ;[732 - 8RS  - 727 - 4N5  - 9RV - 4P4 - 7Q5 - 72X - 026 - 8JP - 453 - 505 - 640 - 7WV - 50E]
 4N5;[732 - 8RS - 727 - 4MZ  - 9RV - 4P4 - 7Q5]
 4NF;[LPZ  - 38C]
@@ -154,10 +140,9 @@ CPK;"[700 - 702 - 701 - 6HN - 6HP - 75Q - A8J - 4GT - A8Z] on N1 Van versions Ju
 4TD;[2PX]
 4WH;[MBP]
 4XH;[58E]
-4YV;"[708 - GX4] escluse versioni Cabinato/Cabina Motrice
-[GX4] su versioni Cabinato/Cabina Motrice"
-4YZ;Nessuna incompatibilit‡
-500;Nessuna incompatibilit‡
+4YV;[708 - GX4] escluse versioni Cabinato/Cabina Motrice or [GX4] su versioni Cabinato/Cabina Motrice
+4YZ;Nessuna incompatibilit√†
+500;Nessuna incompatibilit√†
 502;[CJ1 - 75Q - 297 - 454 - 4GQ]
 505;[2QC - 4GS - 743 - 640 - 727 - 4TI - 4GP - 4GQ - 293 - 55Q - 7Q5 - 732 - 292 - 9VX - C3X - C3Y]
 508;[2V8]
@@ -167,8 +152,7 @@ CPK;"[700 - 702 - 701 - 6HN - 6HP - 75Q - A8J - 4GT - A8Z] on N1 Van versions Ju
 51Q;[48D - 6QZ - 6R0 - 943 - Z1G - BBP - BXQ - CH8]
 520;[AXF]
 52X;[205]
-54Q;"[3JO - 220 - 75Q] on BEV and Euro 7
-[3JO - 220] on Camper"
+54Q;[3JO - 220 - 75Q] on BEV and Euro 7 or [3JO - 220] on Camper
 55Q;[835 - 505]
 57A;[042 - 051 - 140 - 292 - 505 - 708 - 743 - 4GM - 4GS - 58G - 38C - 2PZ - RFX]
 58G;[57A - A2Q - A2R]
@@ -186,26 +170,26 @@ CPK;"[700 - 702 - 701 - 6HN - 6HP - 75Q - A8J - 4GT - A8Z] on N1 Van versions Ju
 5SE;[ARE - 7PC - 6X9 - NB3 - NB4]
 5V6;[Z6L - 8X7 - 8XD - J5L - J5M - 361 - 4GT - 72X - JCQ - JC3]
 5V7;[Z6L - 8X7 - 8XD - J5L - J5M - 4GT - 72X - JCQ - JC3]
-5VE;Nessuna incompatibilit‡
-5VR;Nessuna incompatibilit‡
-5WL;Nessuna incompatibilit‡
-619;Nessuna incompatibilit‡
+5VE;Nessuna incompatibilit√†
+5VR;Nessuna incompatibilit√†
+5WL;Nessuna incompatibilit√†
+619;Nessuna incompatibilit√†
 62E;[144 - 941 - 055 -  0TK - 070]
-62J;Nessuna incompatibilit‡
-644;Nessuna incompatibilit‡
+62J;Nessuna incompatibilit√†
+644;Nessuna incompatibilit√†
 64E;[499 - 980 - 786 - 4DH - 5SB]
 650;[0TL - 0TK]
 692;[9WE - 38C - 9Z4]
-6BX;Nessuna incompatibilit‡
+6BX;Nessuna incompatibilit√†
 6HN;[700 - 702 - A8Z - 701 - 6HP - RTR]
 6HP;[700 - 702 - A8Z - 701 - 6HN - RTR]
-6HQ;Nessuna incompatibilit‡
+6HQ;Nessuna incompatibilit√†
 6JA;[988 - 960 - 4HB - 4EA - A84 - A2Q - A2R - AXF - C3X - C3Y - C8N - C8P - C8Q]
 6L3;[392 - 941]
 6QZ;[48D - 51Q - 6R0 - 943 - 83H - Z1G - 297 - 4EB - 4GP - 4GQ - 4TI - 454 - 7Q5 - BBP - BXQ - CH8]
 6R0;[48D - 51Q - 6QZ - 943 - 2KL - 87D - Z1G - BBP - BXQ - CH8]
-6S6;Nessuna incompatibilit‡
-6SN;Nessuna incompatibilit‡
+6S6;Nessuna incompatibilit√†
+6SN;Nessuna incompatibilit√†
 6X9;[ARE - 7PC - NB3 - NB4 - 5SE]
 6ZQ;[4B0 - JKU]
 700;[702 - A8Z - 701 - 6HN - 6HP - RTR]
@@ -214,7 +198,7 @@ CPK;"[700 - 702 - 701 - 6HN - 6HP - 75Q - A8J - 4GT - A8Z] on N1 Van versions Ju
 708;[4YV] escluse versioni Cabinato/Cabina Motrice
 727;[A8J - 8RS - 640 - 505 - 454 - 732 - 4P4 - 4GP - 4GQ - 4MZ - 4N5  - 4TI - 7Q5 - 9RV - 2QC - Z6L - 453 - 297]
 732;[727  - 8RS - 4MZ - 4N5 - 9RV - 4P4 - 7Q5 - 293 - 2QC - 9VX]
-734;Nessuna incompatibilit‡
+734;Nessuna incompatibilit√†
 738;[4DZ]
 739;[B88 - B89]
 742;[745 - 4EA - A2Q - A2R]
@@ -230,23 +214,23 @@ CPK;"[700 - 702 - 701 - 6HN - 6HP - 75Q - A8J - 4GT - A8Z] on N1 Van versions Ju
 782;[02T]
 786;[499 - 5SB - 64E - 4DH - 8F5 - 8F6 - 8F7 - 8F8 - 8F9 - 8FA - 8H7 - 8FP]
 78D;[280 - 03G]
-78N;Nessuna incompatibilit‡
+78N;Nessuna incompatibilit√†
 78Z;[057 - 077 - 4GM - AX9 - A2Q - A2R - C3X - C3Y - C8N - C8P - C8Q]
-7AV;Nessuna incompatibilit‡
+7AV;Nessuna incompatibilit√†
 7B2;[75J -7H4]
 7H4;[7B2]
 7KK;[02S]
 7MB;[3TU - Z6L - 5K8 - 02S - 02T]
 7PC;[40B]
 7Q5;[727 - 8RS  - 732  - 9RV - 4MZ - 4N5 - 293 - 2QC - 6QZ - 9VX]
-7SH;Nessuna incompatibilit‡
-7UY;Nessuna incompatibilit‡
+7SH;Nessuna incompatibilit√†
+7UY;Nessuna incompatibilit√†
 7WV;[4GP - 4GQ - 640 - 4MZ]
 835;[55Q - 4GS]
-864;Nessuna incompatibilit‡
+864;Nessuna incompatibilit√†
 878;[431 -  0R2 - 1LR]
 879;[749]
-887;Nessuna incompatibilit‡
+887;Nessuna incompatibilit√†
 8A3;[XR8]
 8EJ;[316  - 75M -  6QD - 5BH - 3JO - CMW]
 8F5;[8F6 - 8F7 - 8F8 - 8F9 - 8FA - 8H7 - 8FP - 786 - 980 - 4DH]
@@ -258,27 +242,24 @@ CPK;"[700 - 702 - 701 - 6HN - 6HP - 75Q - A8J - 4GT - A8Z] on N1 Van versions Ju
 8FP;[8F5 - 8F6 - 8F7 - 8F8 - 8F9 - 8FA - 8H7 - 786 - 980 - 4DH]
 8H7;[8F5 - 8F6 - 8F7 - 8F8 - 8F9 - 8FA - 8FP - 786 - 980 - 4DH]
 8JP;[5F4 - 5F8 - NHR - CK1 - CTU]
-8JU;Nessuna incompatibilit‡
+8JU;Nessuna incompatibilit√†
 8RS;[4GP - 4GQ - 4P4 - 4TI - 727 - 732 - 4MZ - 4N5 - 7Q5 - 9RV] 
 8X7;[Z6L - 5V6 - 5V7 - J5L - J5M - 361 - 4GT - 72X - JCQ - JC3]
 8XD;[Z6L - 5V6 - 5V7 - J5L - J5M - 4GT - 72X - JCQ - JC3]
 8ZJ;[50E - 4GP - 4GQ - 9VX]
 941;[392 - 62E - 6L3]
 943;[48D - 51Q - 6QZ - 6R0 - Z1G - BBP - BXQ - CH8]
-947;Nessuna incompatibilit‡
+947;Nessuna incompatibilit√†
 960;[988 - 6JA - 4HB - A84 - AX9 - A2Q - A2R - AXF - C3X - C3Y - C8N - C8P - C8Q]
 980;[499 - 5SB - 64E - 4DH - 8F5 - 8F6 - 8F7 - 8F8 - 8F9 - 8FA - 8H7 - 8FP]
 988;[6JA - 960]
-9RV;"[132 - 453- 4EB - 4GP - 4GQ - 4MZ - 4N5 - 4TH - 4TI - 505 - 640 - 8RS - 727 - 732 - 7Q5  - 2QC - C3X - C3Y] on NET RV BEV
-[132 - 453- 4EB - 4GP - 4GQ - 4MZ - 4N5 - 4TH - 4TI - 505 - 640 - 8RS - 727 - 732 - 7Q5  - 2QC] on NET RV ICE"
+9RV;[132 - 453- 4EB - 4GP - 4GQ - 4MZ - 4N5 - 4TH - 4TI - 505 - 640 - 8RS - 727 - 732 - 7Q5  - 2QC - C3X - C3Y] on NET RV BEV or [132 - 453- 4EB - 4GP - 4GQ - 4MZ - 4N5 - 4TH - 4TI - 505 - 640 - 8RS - 727 - 732 - 7Q5  - 2QC] on NET RV ICE
 9WE;[692 - 750 - 75N - 38C - 9Z4]
 A2Q;[057 - 292 - 358 - 475  -  58G - 743 - A2R - AX9 - B84 - 288 - 077 - 4H2 - 78Z - 960 - 6JA - A84 - 742 - 745] 
 A2R;[057 - 292 - 358 - 475  -  58G - 743 - A2Q - AX9 - B84 - 288 - 077 - 4H2 - 78Z - 960 - 6JA - A84 - 742 - 745] 
 A84;[A2Q - A2R - 6JA - 960 - 4HB - AX9]
-A8J;"[149 - 199 - 727 - Z6L] on all the range except N1 Toyota Van versions
-[149 - 199 - 727 - Z6L - A8Z] on N1 Toyota Van versions"
-A8Z;"[700 - 702 - 701 - 6HN - 6HP - 75Q - A8J - 4GT] on N1 Van versions Toyota
-[700 - 702 - 701 - 6HN - 6HP - 75Q] on all the rest of the range except N1 Vans Toyota"
+A8J;[149 - 199 - 727 - Z6L] on all the range except N1 Toyota Van versions or [149 - 199 - 727 - Z6L - A8Z] on N1 Toyota Van versions
+A8Z;[700 - 702 - 701 - 6HN - 6HP - 75Q - A8J - 4GT] on N1 Van versions Toyota or [700 - 702 - 701 - 6HN - 6HP - 75Q] on all the rest of the range except N1 Vans Toyota
 AJ6;[MBP]
 ARE;[6X9 - 7PC - NB3 - NB4 - 5SE]
 AX9;[358 - 391 - A2R - A2Q - B84 - 288  - 4GM - 4H2 - 78Z - 960 - 4HB - A84 ]
@@ -287,15 +268,12 @@ B84;[391 - A2Q - A2R - AX9 - 288 - C3X - C3Y - C8N - C8P - C8Q]
 B88;[739 - RTK - RTS]
 B89;[RDG - RTK - RTS - 739]
 BBP;[51Q - 0Y8 - 77P - 7P7 - 943 - 48D - 6QZ - 6R0  - Z1G - CH8 - BXQ - C3X]
-C3X;"[288 - B84 - 292 - 057 - 077 - 4H2 - 78Z - 75M - C3Y - 316 - 960 - 6JA - CMW - 505] on Euro 7E
-[288 - B84 - 292 - 057 - 077 - 4H2 - 78Z - 75M - C3Y - 316 - 960 - 6JA - 297 - 454 - CJ1 - 9RV - 4TH - BBP - CMW - 505] on BEV"
-C3Y;"[288 - B84 - 292 - 057 - 077 - 4H2 - 78Z - 75M - C3X - 316 - 960 - 6JA - CMW - 505] on Euro 7E
-[288 - B84 - 292 - 057 - 077 - 4H2 - 78Z - 75M - C3X - 316 - 960 - 6JA - 297 - 454 - CJ1 - 9RV - 4TH - CH8 - BXQ - CMW - 505] on BEV"
+C3X;[288 - B84 - 292 - 057 - 077 - 4H2 - 78Z - 75M - C3Y - 316 - 960 - 6JA - CMW - 505] on Euro 7E or [288 - B84 - 292 - 057 - 077 - 4H2 - 78Z - 75M - C3Y - 316 - 960 - 6JA - 297 - 454 - CJ1 - 9RV - 4TH - BBP - CMW - 505] on BEV
+C3Y;[288 - B84 - 292 - 057 - 077 - 4H2 - 78Z - 75M - C3X - 316 - 960 - 6JA - CMW - 505] on Euro 7E or [288 - B84 - 292 - 057 - 077 - 4H2 - 78Z - 75M - C3X - 316 - 960 - 6JA - 297 - 454 - CJ1 - 9RV - 4TH - CH8 - BXQ - CMW - 505] on BEV
 C8N;[288 - B84 - 292 - 057 - 077 - 4H2 - 78Z - 75M - 316 - 960 - 6JA - CMW]
 C8P;[288 - B84 - 292 - 057 - 077 - 4H2 - 78Z - 75M - 316 - 960 - 6JA - CMW]
 C8Q;[288 - B84 - 292 - 057 - 077 - 4H2 - 78Z - 75M - 316 - 960 - 6JA - BXQ - CMW]
-CJ1;"[502 - 2QC - 293 - C3X - C3Y - 9VX] on NET RV BEV
-[502 - 2QC - 293 - 9VX] on NET RV ICE"
+CJ1;[502 - 2QC - 293 - C3X - C3Y - 9VX] on NET RV BEV or [502 - 2QC - 293 - 9VX] on NET RV ICE
 GX4;[4YV - 38D - 38F]
 J48;[358 - 391 - A2R - A2Q - B84 - 288  - 4GM - 4H2 - 78Z - 960 - 4HB - A84]
 J5L;[Z6L - 8X7 - 8XD - 5V7 - 5V6 - 4GT - 72X - JCQ - JC3]
@@ -319,7 +297,7 @@ XFC;[XSK]
 XSK;[XFC]
 XL4;[XLE]
 XLE;[XL4]
-XXE;Nessuna incompatibilit‡
+XXE;Nessuna incompatibilit√†
 Z1G;[48D - 51Q - 6QZ - 943  -  6R0 - BBP - BXQ - CH8]
 BXQ;[51Q - 0Y8 - 77P - 7P7 - 943 - 48D - 6QZ - 6R0 - Z1G - CH8 - C3Y - C8Q - BBP]
 CH8;[51Q - 0Y8 - 77P - 7P7 - 943 - 48D - 6QZ - 6R0 - Z1G - BBP - C3Y - BXQ]
