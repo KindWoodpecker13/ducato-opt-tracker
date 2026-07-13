@@ -139,7 +139,7 @@ with tab1:
             modelli_disponibili = sorted(df_a["MODELLO"].unique())
             modello_sel = st.selectbox("Modello", modelli_disponibili, key="cfg_modello")
             
-            df_a_f1 = df_a[df_a["MODELLO"] == modello_sel]
+            df_a_f1 = df_a[df_a["PORTATA"] == modello_sel]
             pesi_disponibili = sorted(df_a_f1["PESO"].unique())
             peso_sel = st.selectbox("Peso (GVW)", pesi_disponibili, key="cfg_peso")
             
