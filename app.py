@@ -4,11 +4,11 @@ import os
 import re
 
 # ---------------------------------------------------------
-# CONFIGURAZIONE PAGINA & GRAFICA AVANZATA (mantieni la tua)
+# CONFIGURAZIONE PAGINA & GRAFICA AVANZATA
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="Ducato ITPL Toolbox", 
-    page_icon="🚐", 
+    page_title="Ducato ITPL Toolbox",
+    page_icon="🚐",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -69,7 +69,6 @@ def load_incompat_must(csv_path):
         raw = raw.replace("\n", " ").strip()
         # estrai codici alfanumerici (es. 3JO, 02T, CMX, 640)
         codes = re.findall(r'\b[A-Z0-9]{1,4}\b', raw.upper())
-        # rimuovi numeri che sono solo parentesi o parole comuni (ma manteniamo tutto)
         mapping[key] = {"raw": raw, "codes": sorted(set(codes))}
     return mapping
 
@@ -77,7 +76,6 @@ def extract_codes_from_input(opt_input):
     # normalizza e estrae codici dall'input dell'utente
     raw_codes = re.split(r'[,\s;]+', opt_input.strip().upper())
     codes = [c.strip() for c in raw_codes if c.strip()]
-    # zfill(3) non sempre desiderato per alfanumerici; manteniamo originali ma upper
     return sorted(set(codes))
 
 # =========================================================
@@ -103,17 +101,14 @@ with tab1:
     if db_ready:
         st.markdown("### 🎚️ Seleziona Parametri Griglia Prodotto")
 
-        # Nuovo: selezione Marca/Brand sopra Portata
         col_brand, col_dummy = st.columns([2,1])
         with col_brand:
             brands = sorted([b for b in df_model["MARCA"].fillna("").unique() if b])
             marca_sel = st.selectbox("Marca / Brand", [""] + brands, index=0, key="cfg_marca")
-        # Portata e resto
+
         col1, col2, col3 = st.columns(3)
 
-        # ---------------------------
-        # LETTERA A (Struttura)
-        # ---------------------------
+        # LETTERA A
         with col1:
             st.markdown("#### 📐 Struttura (Lettera A)")
             portate = sorted(df_a["PORTATA"].unique())
@@ -130,9 +125,7 @@ with tab1:
             res_a = df_a_f2[df_a_f2["LUNGHEZZA"] == lunghezza_sel]
             lettera_A = res_a["SIGLA_A"].values[0] if not res_a.empty else None
 
-        # ---------------------------
-        # LETTERA B (Allestimento)
-        # ---------------------------
+        # LETTERA B
         with col2:
             st.markdown("#### 🚐 Allestimento (Lettera B)")
             body_disponibili = sorted(df_b["BODY"].unique())
@@ -145,9 +138,7 @@ with tab1:
             res_b = df_b_f1[df_b_f1["ALTEZZA"] == altezza_sel]
             lettera_B = res_b["CODICE_B"].values[0] if not res_b.empty else None
 
-        # ---------------------------
-        # NUMERO n (Motore & Cambio)
-        # ---------------------------
+        # NUMERO n
         with col3:
             st.markdown("#### ⚙️ Motore & Cambio (Numero n)")
             motori = sorted(df_n["MOTORE"].unique())
@@ -164,18 +155,13 @@ with tab1:
             res_n = df_n_f2[df_n_f2["CAMBIO"] == cambio_sel]
             carattere_n = res_n["SIGLA_n"].values[0] if not res_n.empty else None
 
-        # ---------------------------
-        # Determina codice modello (decode_model.csv)
-        # ---------------------------
+        # Determina codice modello
         model_code = None
         if marca_sel and portata_sel:
             df_m_f = df_model[(df_model["MARCA"] == marca_sel) & (df_model["PORTATA"] == portata_sel)]
             if not df_m_f.empty and "LOGISTIC_MODEL" in df_m_f.columns:
                 model_code = df_m_f["LOGISTIC_MODEL"].values[0].strip()
 
-        # ---------------------------------------------------------
-        # GENERAZIONE SINCOM + CHECK PLANT
-        # ---------------------------------------------------------
         st.markdown("---")
         st.markdown("### 📋 Analisi di Fattibilità Industriale")
 
@@ -186,7 +172,7 @@ with tab1:
             else:
                 sincom_generato = abn
 
-            match = df_1lev[df_1lev["SINCOM"] == abn]  # la matrice 1°lev usa ABn senza prefisso model_code
+            match = df_1lev[df_1lev["SINCOM"] == abn]
 
             if match.empty:
                 plant_text = "NON IN MATRICE<br><span style='font-size:16px;'>Combinazione Non Esistente</span>"
@@ -208,7 +194,6 @@ with tab1:
                     plant_text = "NON PRODUCIBILE<br><span style='font-size:16px;'>Escluso dai Sistemi</span>"
                     plant_color = "#ff4b4b"
 
-            # Output grafico
             out_col1, out_col2 = st.columns(2)
 
             with out_col1:
@@ -240,19 +225,16 @@ with tab1:
         else:
             st.error("Combinazione incompleta. Assicurati che tutti i menù a tendina abbiano un valore valido selezionato.")
 
-        # ---------------------------------------------------------
-# SEZIONE: Compatibilità OPT ordine (con applicazione automatica)
-# ---------------------------------------------------------
 st.markdown("---")
 st.markdown("### 🔗 Compatibilità OPT ordine (con correzione automatica)")
-st.write("Seleziona il progetto (Serial Life o Euro 7), incolla la stringa OPT dell'ordine e avvia l'analisi. Il sistema segnalerà incompatibilità e must-have e potrà applicare correzioni automaticamente.")
+st.write("Seleziona il progetto (Serial Life o Euro 7), incolla la stringa OPT dell'ordine e avvia l'analisi. Il sistema segnalerà incompatibilità e must-have.")
 
 compat_col1, compat_col2 = st.columns([2,1])
 with compat_col1:
     project = st.selectbox("Progetto", ["E7 (Euro 7)", "SL (Serial Life)"], key="cfg_project")
     opt_order_input = st.text_area("Stringa OPT ordine (es. 041, 140, 253, 316, 4BF)", height=120, key="cfg_opt_order")
     auto_apply = st.checkbox("Applica automaticamente le correzioni (rimuovi incompatibili / aggiungi must-have mancanti)", value=False, key="cfg_auto_apply")
-    analyze_compat = st.button("Analizza e Applica Correzioni OPT", key="btn_analyze_compat_apply")
+    analyze_compat = st.button("Analizza OPT (solo report)", key="btn_analyze_compat_report")
 with compat_col2:
     st.info("I file usati per l'analisi devono essere presenti nella repo:\n- incompatibilità_E7.csv\n- incompatibilità_SL.csv\n- must_have_E7.csv\n- must_have_SL.csv\n\nSe mancano, il sistema mostrerà un errore.")
 
@@ -268,10 +250,15 @@ if analyze_compat:
     inc_map = load_incompat_must(inc_file)
     must_map = load_incompat_must(must_file)
 
+    # controlli esistenza file
+    missing_files = []
     if not os.path.exists(inc_file):
-        st.error(f"File incompatibilità non trovato: {inc_file}")
-    elif not os.path.exists(must_file):
-        st.error(f"File must-have non trovato: {must_file}")
+        missing_files.append(inc_file)
+    if not os.path.exists(must_file):
+        missing_files.append(must_file)
+
+    if missing_files:
+        st.error(f"File mancanti: {', '.join(missing_files)}. Carica i CSV nella repository.")
     else:
         # estrai codici dall'input
         input_codes = extract_codes_from_input(opt_order_input)
@@ -307,49 +294,39 @@ if analyze_compat:
                 if missing:
                     missing_must.append({"code": key, "missing": missing, "raw": must_map[key]["raw"]})
 
-        # --- 4) Applicazione automatica (se richiesta)
+        # --- 4) Applicazione automatica (se richiesta) -> ma non mostriamo la lista finale
         final_codes = input_codes.copy()
         removals = []
         additions = []
 
-        # Rimuovi incompatibili diretti: per ogni codice A che dichiara incompat con B, se B è presente, rimuoviamo B (scelta: rimuovere il codice "in conflitto" trovato)
-        # Nota: comportamento scelto: rimuoviamo i codici che risultano in conflitto con almeno un altro codice presente.
         if auto_apply:
-            # costruisci set di codici da rimuovere: tutti i present nelle liste di incompatibilità dei codici inseriti
             to_remove = set()
             for rec in direct_incompat:
                 for c in rec["conflicts"]:
                     to_remove.add(c)
-            # anche consideriamo reverse incompat: se un OPT esterno dichiara incompat con uno dei nostri, rimuoviamo il nostro che è in conflitto? 
-            # Qui preferiamo rimuovere il codice che è elencato nella mappa (cioè l'OPT che dichiara incompatibilità verso i nostri), solo se è presente.
             for rec in reverse_incompat:
-                for c in rec["conflicts"]:
-                    # rec["other"] è l'OPT che dichiara incompatibilità; se è presente tra i nostri, rimuovilo
-                    if rec["other"] in final_codes:
-                        to_remove.add(rec["other"])
-                    # altrimenti rimuoviamo l'intersezione (i nostri codici che sono nella lista di altri)
-                    for ic in rec["conflicts"]:
-                        if ic in final_codes:
-                            to_remove.add(ic)
+                # se l'OPT che dichiara incompatibilità è presente tra i nostri, rimuovilo
+                if rec["other"] in final_codes:
+                    to_remove.add(rec["other"])
+                for ic in rec["conflicts"]:
+                    if ic in final_codes:
+                        to_remove.add(ic)
 
-            # applica rimozioni
             for r in sorted(to_remove):
                 if r in final_codes:
                     final_codes.remove(r)
                     removals.append(r)
 
-            # aggiungi must-have mancanti
             to_add = []
             for rec in missing_must:
                 for m in rec["missing"]:
                     if m not in final_codes:
                         to_add.append(m)
-            # dedup e applica
             for a in sorted(set(to_add)):
                 final_codes.append(a)
                 additions.append(a)
 
-        # --- 5) Output report dettagliato
+        # --- 5) Output report dettagliato (SENZA stringa finale con OPT risultanti)
         st.markdown("#### 🔧 Incompatibilità rilevate (dirette)")
         if direct_incompat:
             for rec in direct_incompat:
@@ -380,7 +357,7 @@ if analyze_compat:
         else:
             st.info("Nessun must-have rilevato per i codici inseriti.")
 
-        st.markdown("#### 🛠️ Azioni automatiche applicate")
+        st.markdown("#### 🛠️ Azioni automatiche (se abilitate)")
         if auto_apply:
             if removals:
                 st.warning(f"Rimossi {len(removals)} codici incompatibili: {', '.join(removals)}")
@@ -390,14 +367,12 @@ if analyze_compat:
                 st.success(f"Aggiunti {len(additions)} must-have mancanti: {', '.join(additions)}")
             else:
                 st.info("Nessuna aggiunta necessaria.")
+            st.info("Nota: per semplicità la macchina non mostra qui la lista finale degli OPT; il report indica solo le azioni intraprese.")
         else:
-            st.info("Modalità di sola analisi: nessuna modifica automatica applicata. Abilita 'Applica automaticamente' per modificare la lista.")
-
-        st.markdown("#### 📋 Lista OPT risultante (al netto delle correzioni)")
-        st.code(", ".join(final_codes) if final_codes else "—", language="text")
+            st.info("Modalità di sola analisi: nessuna modifica automatica applicata.")
 
         st.markdown("---")
-        st.info("Report generato. Se vuoi, posso: 1) esportare la lista finale in un file, 2) applicare regole di priorità più sofisticate (es. preferire rimozione di OPT meno critici), 3) integrare condizioni contestuali (BEV/ICE, lunghezza, marca). Dimmi quale preferisci e lo implemento.")
+        st.info("Report generato. Questo report contiene solo i risultati estratti dai CSV (incompatibilità e must-have) senza la stringa finale con gli OPT risultanti.")
 
 # =========================================================
 # TAB 2: CHECKER OPT (mantieni la logica originale quasi intatta)
@@ -405,7 +380,7 @@ if analyze_compat:
 with tab2:
     CSV_FILENAME = "griglia_prodotto.csv"
     st.subheader("Decodificatore Istantaneo Stringhe OPT")
-    
+
     df_opt = None
     if os.path.exists(CSV_FILENAME):
         try:
@@ -427,7 +402,7 @@ with tab2:
         placeholder="Esempio: 041, 140, 253, 316, 4BF",
         key="opt_checker_area"
     )
-    
+
     analyze_button = st.button("Avvia Decodifica Stringa", type="primary")
 
     opt_rfid_map = {
@@ -458,9 +433,9 @@ with tab2:
         else:
             raw_codes = opt_input.replace(",", " ").replace(";", " ").split()
             vehicle_codes = sorted(set(str(code).strip().upper().zfill(3) for code in raw_codes if str(code).strip()))
-            
+
             st.markdown(f"#### Analisi completata: Rilevati **{len(vehicle_codes)}** codici unici.")
-            
+
             db_codes = set(df_opt["code"].unique())
             present, missing = [], []
 
@@ -473,11 +448,11 @@ with tab2:
 
             st.markdown("### 🔧 Componenti Critici Rilevati")
             crit_col1, crit_col2 = st.columns(2)
-            
+
             for i, (label, group_codes) in enumerate(opt_rfid_map.items()):
                 found = find_opt_in_group(vehicle_codes, group_codes, df_opt)
                 target_col = crit_col1 if i % 2 == 0 else crit_col2
-                
+
                 with target_col:
                     if found:
                         lines = "; ".join(f"[{c}] {d}" for c, d in found)
@@ -496,17 +471,18 @@ with tab2:
                 with st.expander("⚠️ Visualizza Codici Anonimi o Non Trovati nel DB"):
                     st.warning(", ".join(missing))
 
+            # Output testuale sintetico pronto per copia/incolla (manteniamo solo il report di decodifica)
             output_lines = ["--- REPORT DECODIFICA OPT DUCATO ---"]
             for label, group_codes in opt_rfid_map.items():
                 found = find_opt_in_group(vehicle_codes, group_codes, df_opt)
                 output_lines.append(f"{label}: PRESENTE -> {'; '.join(f'[{c}] {d}' for c, d in found)}" if found else f"{label}: ASSENTE")
-            
+
             output_lines.append("\n[ELENCO COMPLETO]")
             for item in present:
                 output_lines.append(f"{item['code']} - {item['descr_it']}")
             if missing:
                 output_lines.append(f"\nNON TROVATI NEL DB: {', '.join(missing)}")
-                
+
             st.markdown("---")
             st.subheader("📋 Output pronto da Copiare / Incollare")
             st.text_area("Copia questo testo per i tuoi log o per le comunicazioni di stabilimento:", value="\n".join(output_lines), height=200)
