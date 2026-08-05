@@ -71,6 +71,16 @@ st.markdown(
     .custom-card:hover {
         transform: translateY(-2px);
     }
+
+    /* Card per il codice SINCOM completo (hero) */
+    .hero-card {
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+        padding: 28px;
+        text-align: center;
+    }
     
     /* Box per gli OPT del Checker */
     .opt-box {
@@ -109,10 +119,12 @@ tab1, tab2 = st.tabs(["🎛️ Configuratore SINCOM & Plant", "🔬 Checker OPT 
 # =========================================================
 with tab1:
     st.subheader("Configurazione Guidata del Veicolo")
-    st.write("Seleziona i vincoli tecnici per comporre il codice SINCOM corretto e verificarne il Plant di produzione.")
+    st.write("Seleziona i vincoli tecnici per comporre il codice SINCOM completo e verificarne il Plant di produzione.")
     
     # Tentativo di caricamento di tutti i CSV di configurazione
     try:
+        df_model = pd.read_csv("decode_model.csv", sep=";", dtype=str).apply(lambda x: x.str.strip())
+
         df_a = pd.read_csv("decode_sincom_A.csv", sep=";", dtype=str).apply(lambda x: x.str.strip())
         df_b = pd.read_csv("decode_sincom_B.csv", sep=";", dtype=str)
         df_b["ALTEZZA"] = df_b["ALTEZZA"].fillna("").astype(str).str.strip()
@@ -121,7 +133,7 @@ with tab1:
         df_n = pd.read_csv("decode_sincom_n.csv", sep=";", dtype=str).apply(lambda x: x.str.strip())
         
         # Caricamento del file di 1° livello con la mappatura reale dei plant
-        df_1lev = pd.read_csv("decode_1°lev.csv", sep=";", dtype=str).apply(lambda x: x.str.strip())
+        df_1lev = pd.read_csv("decode_1_lev.csv", sep=";", dtype=str).apply(lambda x: x.str.strip())
         db_ready = True
     except Exception as e:
         st.error(f"⚠️ Errore nel caricamento dei CSV del configuratore: {e}")
@@ -136,10 +148,14 @@ with tab1:
         
         with col1:
             st.markdown("#### 📐 Struttura (Lettera A)")
-            modelli_disponibili = sorted(df_a["MODELLO"].unique())
-            modello_sel = st.selectbox("Modello", modelli_disponibili, key="cfg_modello")
+
+            marche_disponibili = sorted(df_model["MARCA"].unique())
+            marca_sel = st.selectbox("Marca", marche_disponibili, key="cfg_marca")
+
+            portate_disponibili = sorted(df_a["PORTATA"].unique())
+            portata_sel = st.selectbox("Portata", portate_disponibili, key="cfg_portata")
             
-            df_a_f1 = df_a[df_a["MODELLO"] == modello_sel]
+            df_a_f1 = df_a[df_a["PORTATA"] == portata_sel]
             pesi_disponibili = sorted(df_a_f1["PESO"].unique())
             peso_sel = st.selectbox("Peso (GVW)", pesi_disponibili, key="cfg_peso")
             
@@ -181,6 +197,26 @@ with tab1:
             res_n = df_n_f2[df_n_f2["CAMBIO"] == cambio_sel]
             carattere_n = res_n["SIGLA_n"].values[0] if not res_n.empty else None
 
+        st.markdown("---")
+        st.markdown("### 🏷️ Parametri Aggiuntivi Codice d'Ordine")
+
+        col4, col5, col6 = st.columns(3)
+
+        with col4:
+            serie_options = {"Serial Life": "2", "€7 o MY28": "3"}
+            serie_label = st.selectbox("Numero di Serie", list(serie_options.keys()), key="cfg_serie")
+            serie_sel = serie_options[serie_label]
+
+        with col5:
+            mercato_options = {"Europa": "000", "UK o Giappone": "870"}
+            mercato_label = st.selectbox("Mercato", list(mercato_options.keys()), key="cfg_mercato")
+            mercato_sel = mercato_options[mercato_label]
+
+        with col6:
+            guida_options = {"Sinistra (SX)": "01", "Destra (DX)": "02"}
+            guida_label = st.selectbox("Posizione di Guida", list(guida_options.keys()), key="cfg_guida")
+            guida_sel = guida_options[guida_label]
+
         # ---------------------------------------------------------
         # ELABORAZIONE LOGICA DETTAGLIATA REALE DEI PLANT
         # ---------------------------------------------------------
@@ -189,6 +225,19 @@ with tab1:
         
         if lettera_A and lettera_B and carattere_n:
             sincom_generato = f"{lettera_A}{lettera_B}{carattere_n}".upper()
+
+            # Ricerca del codice modello (3 cifre) incrociando Marca, Portata e Alimentazione
+            match_model = df_model[
+                (df_model["MARCA"] == marca_sel) & (df_model["ALIMENTAZIONE"] == motore_sel)
+            ]
+            if len(match_model) > 1:
+                match_model = match_model[match_model["PORTATA"] == portata_sel]
+            codice_modello = match_model["LOGISTIC_MODEL"].values[0] if not match_model.empty else None
+
+            if codice_modello:
+                sincom_completo = f"{codice_modello}.{sincom_generato}.{serie_sel}.{mercato_sel}.{guida_sel}"
+            else:
+                sincom_completo = None
             
             producibile_sevel = False
             producibile_gliwice = False
@@ -224,14 +273,33 @@ with tab1:
                 plant_text = "NON IN MATRICE<br><span style='font-size:16px;'>Combinazione Teorica Non Esistente</span>"
                 plant_color = "#ff4b4b"
 
-            # Interfaccia Output Grafica Elegante
+            # Card hero con il codice SINCOM completo
+            if sincom_completo:
+                st.markdown(
+                    f"""
+                    <div class="hero-card" style="border-top: 5px solid #21c35a;">
+                        <span style="letter-spacing: 1px; color: #cbd5e1; font-weight: 500; font-size: 14px;">CODICE SINCOM COMPLETO</span>
+                        <div style="font-size: 46px; font-weight: 800; color: #ffffff; margin: 14px 0; letter-spacing: 2px;">{sincom_completo}</div>
+                        <span style="background: rgba(33, 195, 90, 0.15); color: #86efac; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">
+                            Modello: {codice_modello} | ABn: {sincom_generato} | Serie: {serie_sel} | Mercato: {mercato_sel} | Guida: {guida_sel}
+                        </span>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            else:
+                st.error("⚠️ Nessuna corrispondenza trovata in 'decode_model.csv' per la combinazione Marca / Portata / Alimentazione selezionata. Impossibile generare il codice modello (3 cifre).")
+
+            st.markdown("")
+
+            # Interfaccia Output Grafica Elegante (dettaglio ABn + Plant)
             out_col1, out_col2 = st.columns(2)
             
             with out_col1:
                 st.markdown(
                     f"""
                     <div class="custom-card" style="border-top: 5px solid #4f7bd6;">
-                        <span style="letter-spacing: 1px; color: #cbd5e1; font-weight: 500; font-size: 14px;">CODICE D'ORDINE GENERATO</span>
+                        <span style="letter-spacing: 1px; color: #cbd5e1; font-weight: 500; font-size: 14px;">SIGLA ABn</span>
                         <div style="font-size: 54px; font-weight: 800; color: #ffffff; margin: 12px 0; letter-spacing: 4px;">{sincom_generato}</div>
                         <span style="background: rgba(79, 123, 214, 0.15); color: #93c5fd; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">
                             Struttura: {lettera_A} | Allestimento: {lettera_B} | Motore: {carattere_n}
