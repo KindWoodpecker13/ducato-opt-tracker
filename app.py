@@ -133,7 +133,7 @@ with tab1:
         df_n = pd.read_csv("decode_sincom_n.csv", sep=";", dtype=str).apply(lambda x: x.str.strip())
         
         # Caricamento del file di 1° livello con la mappatura reale dei plant
-        df_1lev = pd.read_csv("decode_1_lev.csv", sep=";", dtype=str).apply(lambda x: x.str.strip())
+        df_1lev = pd.read_csv("decode_1°lev.csv", sep=";", dtype=str).apply(lambda x: x.str.strip())
         db_ready = True
     except Exception as e:
         st.error(f"⚠️ Errore nel caricamento dei CSV del configuratore: {e}")
