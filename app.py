@@ -524,14 +524,14 @@ with tab1:
             serie_sel = serie_options[serie_label]
 
         with col5:
-            mercato_options = {"Europa": "000", "UK o Giappone": "870"}
-            mercato_label = st.selectbox("Mercato", list(mercato_options.keys()), key="cfg_mercato")
-            mercato_sel = mercato_options[mercato_label]
-
-        with col6:
             guida_options = {"Sinistra (SX)": "01", "Destra (DX)": "02"}
             guida_label = st.selectbox("Posizione di Guida", list(guida_options.keys()), key="cfg_guida")
             guida_sel = guida_options[guida_label]
+
+        with col6:
+            mercato_options = {"Europa": "000", "UK o Giappone": "870"}
+            mercato_label = st.selectbox("Mercato", list(mercato_options.keys()), key="cfg_mercato")
+            mercato_sel = mercato_options[mercato_label]
 
         # ---------------------------------------------------------
         # ELABORAZIONE LOGICA DETTAGLIATA REALE DEI PLANT
