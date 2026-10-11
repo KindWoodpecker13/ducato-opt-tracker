@@ -4,155 +4,8 @@ import os
 import re
 import html
 
-# ---------------------------------------------------------
-# MOTORE DI REGOLE MUST HAVE / INCOMPATIBILITÀ
-# ---------------------------------------------------------
-# Parole che segnalano una condizione testuale (scope) legata a gamma,
-# motorizzazione, allestimento ecc. Se compaiono nella cella, la regola
-# NON viene applicata in automatico ma segnalata per verifica manuale.
-RULE_STOPWORDS = {
-    "on", "for", "except", "su", "per", "tranne", "range", "all", "gamma",
-    "euro", "bev", "ice", "hydrogen", "hybrid", "camper", "van", "cab",
-    "chassis", "panel", "net", "rv", "tl", "pl", "pl8", "glazed", "toyota",
-    "rete", "retail", "motor", "special", "half", "furgoni", "furgone",
-    "lastrati", "lastrato", "vetrati", "vetrato", "fiancata", "mista",
-    "semivetrato", "cassonato", "cassonati", "scudati", "cabinati",
-    "cabinato", "the", "of", "without", "solo", "only",
-}
-
-def classify_rule(raw_text):
-    """Ritorna (stato, testo) dove stato in {NONE, AUTO, MANUAL}."""
-    if pd.isna(raw_text):
-        return "NONE", ""
-    text = str(raw_text).strip()
-    low = text.lower()
-    if not text or low.startswith("nessun"):
-        return "NONE", ""
-    words = re.findall(r"[A-Za-zÀ-ÿ]+", low)
-    if any(w in RULE_STOPWORDS for w in words):
-        return "MANUAL", text
-    return "AUTO", text
-
-def parse_or_groups(text):
-    """'[A + B] or [C + D]' -> [[A,B],[C,D]]  (soddisfatta se un gruppo è tutto presente)."""
-    groups_raw = re.findall(r"\[([^\]]*)\]", text)
-    if not groups_raw:
-        groups_raw = [text]
-    groups = []
-    for g in groups_raw:
-        codes = [c.strip().upper() for c in re.split(r"\+", g) if c.strip()]
-        if codes:
-            groups.append(codes)
-    return groups
-
-def parse_forbidden_list(text):
-    """'[A - B - C]' -> [A, B, C] (lista piatta di codici incompatibili)."""
-    groups_raw = re.findall(r"\[([^\]]*)\]", text)
-    if not groups_raw:
-        groups_raw = [text]
-    codes = []
-    for g in groups_raw:
-        for c in re.split(r"[-,]", g):
-            c = c.strip().upper()
-            if c:
-                codes.append(c)
-    return codes
-
 def norm_code(c):
     return str(c).strip().upper().zfill(3)
-
-def build_must_have_dict(df):
-    d = {}
-    for _, row in df.iterrows():
-        code = norm_code(row.iloc[0])
-        status, text = classify_rule(row.iloc[1])
-        if status == "NONE":
-            d[code] = {"status": "NONE"}
-        elif status == "MANUAL":
-            d[code] = {"status": "MANUAL", "raw": text}
-        else:
-            groups = [[norm_code(c) for c in g] for g in parse_or_groups(text)]
-            d[code] = {"status": "AUTO", "groups": groups}
-    return d
-
-def build_incompat_dict(df):
-    d = {}
-    for _, row in df.iterrows():
-        code = norm_code(row.iloc[0])
-        status, text = classify_rule(row.iloc[1])
-        if status == "NONE":
-            d[code] = {"status": "NONE"}
-        elif status == "MANUAL":
-            d[code] = {"status": "MANUAL", "raw": text}
-        else:
-            forbidden = [norm_code(c) for c in parse_forbidden_list(text)]
-            d[code] = {"status": "AUTO", "forbidden": forbidden}
-    return d
-
-def analyze_order(vehicle_codes, must_have_dict, incompat_dict):
-    """Applica must-have (auto, non ambigui) e incompatibilità (auto) alla lista di codici.
-    Ritorna (codici_finali_in_ordine, report_dict)."""
-    ordered = list(dict.fromkeys(vehicle_codes))  # dedup mantenendo l'ordine
-    current_set = set(ordered)
-
-    report = {
-        "must_have_ok": [],
-        "must_have_added": [],
-        "must_have_choice_needed": [],
-        "must_have_manual": [],
-        "must_have_unknown": [],
-        "incompat_conflicts": [],
-        "incompat_manual": [],
-        "incompat_unknown": [],
-    }
-
-    # --- MUST HAVE: aggiunta automatica solo se non ambigua (un solo gruppo) ---
-    for code in ordered:
-        rule = must_have_dict.get(code)
-        if rule is None:
-            report["must_have_unknown"].append(code)
-            continue
-        if rule["status"] == "NONE":
-            continue
-        if rule["status"] == "MANUAL":
-            report["must_have_manual"].append((code, rule["raw"]))
-            continue
-        groups = rule["groups"]
-        satisfied = any(all(c in current_set for c in g) for g in groups)
-        if satisfied:
-            report["must_have_ok"].append(code)
-        elif len(groups) == 1:
-            missing = [c for c in groups[0] if c not in current_set]
-            for m in missing:
-                if m not in current_set:
-                    ordered.append(m)
-                    current_set.add(m)
-            report["must_have_added"].append((code, missing))
-        else:
-            report["must_have_choice_needed"].append((code, groups))
-
-    # --- INCOMPATIBILITÀ: rimozione automatica, vince il codice inserito prima ---
-    kept = []
-    kept_set = set()
-    for code in ordered:
-        rule = incompat_dict.get(code)
-        conflict_with = None
-        if rule is not None and rule["status"] == "AUTO":
-            for forbidden_code in rule["forbidden"]:
-                if forbidden_code in kept_set:
-                    conflict_with = forbidden_code
-                    break
-        if conflict_with:
-            report["incompat_conflicts"].append((code, conflict_with))
-            continue  # codice scartato: incompatibile con uno già tenuto
-        if rule is None:
-            report["incompat_unknown"].append(code)
-        elif rule["status"] == "MANUAL":
-            report["incompat_manual"].append((code, rule["raw"]))
-        kept.append(code)
-        kept_set.add(code)
-
-    return kept, report
 
 # ---------------------------------------------------------
 # TABELLONE OPT PER SINCOM (S = Serie, O = Optional, ND = Non disponibile)
@@ -390,33 +243,6 @@ st.title("Ducato ITPL Toolbox 🚐")
 st.write("Piattaforma integrata per la validazione dei codici d'ordine e decodifica rapida degli OPT.")
 st.markdown("---")
 
-# Caricamento regole Must Have / Incompatibilità (SL e E7), indipendente dai tab
-def _read_rules_csv(path):
-    try:
-        return pd.read_csv(path, sep=";", dtype=str, encoding="utf-8")
-    except UnicodeDecodeError:
-        return pd.read_csv(path, sep=";", dtype=str, encoding="latin-1")
-
-rules_ready = True
-rules_error = None
-try:
-    mh_sl_raw = _read_rules_csv("must_have_SL.csv")
-    mh_e7_raw = _read_rules_csv("must_have_E7.csv")
-    inc_sl_raw = _read_rules_csv("incompatibilita_SL.csv")
-    inc_e7_raw = _read_rules_csv("incompatibilita_E7.csv")
-
-    MUST_HAVE = {
-        "2": build_must_have_dict(mh_sl_raw),   # Serial Life
-        "3": build_must_have_dict(mh_e7_raw),   # €7 / MY28
-    }
-    INCOMPAT = {
-        "2": build_incompat_dict(inc_sl_raw),
-        "3": build_incompat_dict(inc_e7_raw),
-    }
-except Exception as e:
-    rules_ready = False
-    rules_error = e
-
 # Valore di default per evitare NameError se il Tab 1 non ha ancora girato/fallito
 serie_sel = None
 # SINCOM completo generato nel Tab 1 (serve a precompilare il campo del Tab 3)
@@ -524,14 +350,14 @@ with tab1:
             serie_sel = serie_options[serie_label]
 
         with col5:
-            guida_options = {"Sinistra (SX)": "01", "Destra (DX)": "02"}
-            guida_label = st.selectbox("Posizione di Guida", list(guida_options.keys()), key="cfg_guida")
-            guida_sel = guida_options[guida_label]
-
-        with col6:
             mercato_options = {"Europa": "000", "UK o Giappone": "870"}
             mercato_label = st.selectbox("Mercato", list(mercato_options.keys()), key="cfg_mercato")
             mercato_sel = mercato_options[mercato_label]
+
+        with col6:
+            guida_options = {"Sinistra (SX)": "01", "Destra (DX)": "02"}
+            guida_label = st.selectbox("Posizione di Guida", list(guida_options.keys()), key="cfg_guida")
+            guida_sel = guida_options[guida_label]
 
         # ---------------------------------------------------------
         # ELABORAZIONE LOGICA DETTAGLIATA REALE DEI PLANT
@@ -850,89 +676,488 @@ with tab3:
                 )
 
 # =========================================================
-# TAB 4: VERIFICA ORDINE (MUST HAVE & INCOMPATIBILITÀ)
+# TAB 4: VERIFICA ORDINE (MUST HAVE & INCOMPATIBILITÀ) — NUOVO FORMATO
 # =========================================================
+#
+# File letti (separatore ';', una riga = una regola):
+#   incompatibilita_SL.csv / incompatibilita_E7.csv   ->  OPT;CONDIZIONE;INCOMPATIBILI
+#   must_have_SL.csv        / must_have_E7.csv        ->  OPT;CONDIZIONE;MUST HAVE
+# CONDIZIONE: vuota = sempre; CAMPO=v1|v2 ; più termini con &  ; CAMPO=!v = negazione.
+# MUST HAVE : '+' = AND, '|' = OR  (es. 4EB+50E+4N5 | 4EB+50E+732).
+# INCOMPATIBILI: codici separati da virgola (la regola vale in entrambe le direzioni).
+import io as _io
+import re as _re
+
+_CODE = _re.compile(r"^[0-9A-Z]{3}$")
+_FIELDS = {"ALIMENTAZIONE", "EMISSIONI", "GAMMA", "BODY", "MARCA",
+           "LUNGHEZZA", "ALTEZZA", "PESO", "CLASSE", "MODELLO"}
+_FIELD_ALIAS = {"ALIEMNTAZIONE": "ALIMENTAZIONE", "ALIMENTAZIONI": "ALIMENTAZIONE",
+                "EMISSIONE": "EMISSIONI"}
+
+
+def _canon(s):
+    """Maiuscolo, senza spazi/punti/trattini; sinonimi comuni uniformati."""
+    s = _re.sub(r"[\s.\-_/]", "", str(s).upper())
+    syn = {
+        "EUROVI": "EURO6E", "EUROVIE": "EURO6E", "EURO6EVIE": "EURO6E",
+        "EURO7E": "EURO7", "EUROVII": "EURO7",
+        "FURGONE": "VAN", "FURGONI": "VAN",
+        "FURGONELASTRATO": "PANELVAN", "FURGONILASTRATI": "PANELVAN",
+        "FURGONEVETRATO": "GLAZEDVAN", "FURGONESEMIVETRATO": "HALFGLAZEDVAN",
+        "SEMIVETRATO": "HALFGLAZEDVAN", "VETRATO": "GLAZEDVAN",
+        "SCUDATI": "SCUDATO", "SCUDATISPECIAL": "SCUDATOSPECIAL",
+        "CABINATI": "CABINATO", "CABIINATO": "CABINATO",
+        "TL": "CAMPER", "TEMPOLIBERO": "CAMPER", "RETE": "RETAIL",
+        "IDROGENO": "HYDROGEN", "ELETTRICO": "BEV",
+    }
+    return syn.get(s, s)
+
+
+# Un valore di regola "contiene" i valori del veicolo di questi gruppi (es. VAN ⊃ PANEL VAN)
+_GROUPS = {"VAN": {"PANELVAN", "GLAZEDVAN", "HALFGLAZEDVAN"}}
+_BODY_WORDS = {"VAN", "PANELVAN", "GLAZEDVAN", "HALFGLAZEDVAN", "CHASSISCAB", "CHASSISCABSPECIAL",
+               "MOTORCAB", "COWL", "MOTORCOWL", "COWLSPECIAL", "CHASSISCOWL", "CABINATO",
+               "CABINATOSPECIAL", "SCUDATO", "SCUDATOSPECIAL", "CABINAMOTRICE", "DOPPIACABINA",
+               "CHASSISSINGLECAB", "CHASSISDOUBLECAB", "DROPSIDESINGLECAB", "DROPSIDEDOUBLECAB"}
+
+
+def _is_body_value(v):
+    c = _canon(v)
+    return (c in _BODY_WORDS or c.startswith("CABINATOCABINA") or c.startswith("CASSONATOCABINA")
+            or c.startswith("FURGONECABINA"))
+
+
+def _parse_cond(cond):
+    """'A=x|y & B=!z' -> ([(campo, neg, [valori])], [avvisi]). Solleva ValueError se non valida."""
+    terms, notes = [], []
+    cond = (cond or "").strip()
+    if not cond:
+        return terms, notes
+    for t in cond.split("&"):
+        t = t.strip()
+        if "=" not in t:
+            raise ValueError(f"termine senza '=': '{t}'")
+        f, v = t.split("=", 1)
+        f = f.strip().upper()
+        f2 = _FIELD_ALIAS.get(f, f)
+        if f2 != f:
+            notes.append(f"campo '{f}' corretto in '{f2}'")
+            f = f2
+        if f not in _FIELDS:
+            raise ValueError(f"campo sconosciuto '{f}'")
+        v = v.strip()
+        neg = v.startswith("!")
+        if neg:
+            v = v[1:].strip()
+        vals = [x.strip() for x in v.split("|") if x.strip()]
+        if not vals:
+            raise ValueError(f"valore vuoto per '{f}'")
+        if f == "GAMMA" and all(_is_body_value(x) for x in vals):
+            notes.append("GAMMA=" + "|".join(vals) + " interpretato come BODY")
+            f = "BODY"
+        terms.append((f, neg, vals))
+    return terms, notes
+
+
+def _parse_must(expr):
+    """'A+B|C+D' -> [[A,B],[C,D]]. Solleva ValueError se non valido."""
+    expr = (expr or "").strip().strip(";").strip().upper()
+    out = []
+    for alt in expr.split("|"):
+        codes = [c.strip() for c in alt.split("+")]
+        for c in codes:
+            if not _CODE.match(c):
+                raise ValueError(f"codice non valido '{c}'")
+        out.append(codes)
+    return out
+
+
+def _read_text(path):
+    raw = open(path, "rb").read()
+    for enc in ("utf-8-sig", "cp1252"):
+        try:
+            return raw.decode(enc)
+        except UnicodeDecodeError:
+            pass
+    return raw.decode("latin-1")
+
+
+def load_rules(path, kind):
+    """kind = 'inc' | 'must'. Ritorna dict(rules=[...], known=set, problems=[...], fixes=[...])."""
+    text = _read_text(path).replace("\r", "")
+    lines = [l for l in text.split("\n") if l.strip()]
+    res = {"rules": [], "known": set(), "problems": [], "fixes": []}
+    if not lines:
+        res["problems"].append((0, "", "file vuoto"))
+        return res
+    header = [h.strip().upper() for h in lines[0].split(";")]
+    if len(header) < 3 or "CONDIZIONE" not in header:
+        res["problems"].append((1, lines[0][:80],
+                                "intestazione non nel nuovo formato (servono 3 colonne: OPT;CONDIZIONE;...)"))
+        return res
+    for n, line in enumerate(lines[1:], start=2):
+        parts = [p.strip() for p in line.split(";")]
+        parts = [p for i, p in enumerate(parts) if not (i >= 3 and p == "")]
+        if len(parts) != 3:
+            res["problems"].append((n, line[:100], f"{len(parts)} campi invece di 3"))
+            continue
+        code, cond, body = parts[0].upper(), parts[1], parts[2].strip().rstrip(";").strip()
+        if not _CODE.match(code):
+            res["problems"].append((n, line[:100], f"codice OPT non valido '{code}'"))
+            continue
+        res["known"].add(code)
+        if body == "" or body.lower().startswith("nessun"):
+            continue
+        try:
+            terms, notes = _parse_cond(cond)
+            if kind == "must":
+                alts = _parse_must(body)
+            else:
+                alts = []
+                for c in _re.split(r"[,\s]+", body.upper()):
+                    if not c:
+                        continue
+                    if not _CODE.match(c):
+                        raise ValueError(f"codice non valido '{c}'")
+                    alts.append(c)
+                if not alts:
+                    raise ValueError("lista vuota")
+        except ValueError as e:
+            res["problems"].append((n, line[:100], str(e)))
+            continue
+        for nt in notes:
+            res["fixes"].append((n, code, nt))
+        res["rules"].append({"line": n, "code": code, "cond": cond, "terms": terms, "data": alts})
+    return res
+
+
+@st.cache_data(show_spinner=False)
+def _load_rules_cached(path, kind, mtime):
+    return load_rules(path, kind)
+
+
+def _match_value(rule_val, veh_val, field):
+    rv, vv = _canon(rule_val), _canon(veh_val)
+    if field == "PESO":
+        m = _re.match(r"^(<=|>=|<|>)?(\d+(?:\.\d+)?)Q?$", rv)
+        try:
+            vnum = float(_re.sub(r"[^\d.]", "", str(veh_val)) or "nan")
+        except ValueError:
+            return None
+        if vnum > 200:
+            vnum /= 100.0
+        if not m or vnum != vnum:
+            return None
+        op, num = m.group(1), float(m.group(2))
+        return {"<": vnum < num, ">": vnum > num, "<=": vnum <= num, ">=": vnum >= num,
+                None: vnum == num}[op]
+    if rv == vv:
+        return True
+    if field == "BODY" and vv in _GROUPS.get(rv, set()):
+        return True
+    if field == "BODY" and rv == "VAN" and vv.endswith("VAN"):
+        return True
+    if field == "EMISSIONI" and rv == "EURO64" and vv == "EURO64PL8":
+        return True
+    return False
+
+
+def eval_cond(terms, attrs):
+    """True / False / None (None = non valutabile perché manca una caratteristica del veicolo)."""
+    unknown = False
+    for field, neg, vals in terms:
+        a = attrs.get(field)
+        if a is None or str(a).strip() == "":
+            unknown = True
+            continue
+        hits = [_match_value(v, a, field) for v in vals]
+        if any(h is True for h in hits):
+            res = True
+        elif any(h is None for h in hits):
+            unknown = True
+            continue
+        else:
+            res = False
+        if neg:
+            res = not res
+        if not res:
+            return False
+    return None if unknown else True
+
+
+def build_incompat_map(rules, attrs):
+    """-> (mappa codice->{incompatibili: motivo}, regole non valutabili)."""
+    inc, unk = {}, []
+    for r in rules:
+        ok = eval_cond(r["terms"], attrs)
+        if ok is False:
+            continue
+        if ok is None:
+            unk.append(r)
+            continue
+        for y in r["data"]:
+            if y == r["code"]:
+                continue
+            inc.setdefault(r["code"], {})[y] = r["line"]
+            inc.setdefault(y, {})[r["code"]] = r["line"]
+    return inc, unk
+
+
+def verify_order(user_codes, must_rules, inc_rules, must_known, inc_known, attrs):
+    """Motore: ritorna dict con codici finali, aggiunti, rimossi e dettagli."""
+    inc_map, inc_unknown = build_incompat_map(inc_rules, attrs)
+
+    by_code = {}
+    must_unknown = []
+    for r in must_rules:
+        ok = eval_cond(r["terms"], attrs)
+        if ok is None:
+            must_unknown.append(r)
+        elif ok:
+            by_code.setdefault(r["code"], []).append(r)
+
+    order = list(dict.fromkeys(user_codes))
+    kept, removed = [], []          # removed: (codice, in conflitto con, riga regola)
+    for c in order:                 # 1) incompatibilità tra i codici inseriti: vince chi è prima
+        hit = next((k for k in kept if k in inc_map.get(c, {})), None)
+        if hit:
+            removed.append((c, hit, inc_map[c][hit]))
+        else:
+            kept.append(c)
+
+    added = []                      # (codice aggiunto, richiesto da, riga regola)
+    choices = []                    # (codice, [alternative], suggerita)
+    blocked = []                    # (codice mancante, richiesto da, in conflitto con)
+    ok_list = []
+    present = set(kept)
+    queue = list(kept)
+    handled = set()
+    while queue:
+        c = queue.pop(0)
+        for r in by_code.get(c, []):
+            key = (c, r["line"])
+            if key in handled:
+                continue
+            handled.add(key)
+            alts = r["data"]
+            if any(all(x in present for x in a) for a in alts):
+                ok_list.append(c)
+                continue
+            if len(alts) == 1:
+                pick = alts[0]
+            else:
+                pick = min(alts, key=lambda a: (len([x for x in a if x not in present]), alts.index(a)))
+                choices.append((c, alts, pick))
+            for m in [x for x in pick if x not in present]:
+                clash = next((k for k in present if k in inc_map.get(m, {})), None)
+                if clash:
+                    blocked.append((m, c, clash))
+                    continue
+                present.add(m)
+                kept.append(m)
+                added.append((m, c, r["line"]))
+                queue.append(m)
+
+    inc_warn = []                   # possibili incompatibilità con condizione non valutabile
+    for r in inc_unknown:
+        x = r["code"]
+        if x in present:
+            for y in r["data"]:
+                if y in present:
+                    inc_warn.append((x, y, r))
+    must_warn = [r for r in must_unknown if r["code"] in present]
+
+    unknown_codes = [c for c in order if c not in must_known and c not in inc_known]
+    return {"final": kept, "added": added, "removed": removed, "choices": choices,
+            "blocked": blocked, "ok": sorted(set(ok_list)), "inc_warn": inc_warn,
+            "must_warn": must_warn, "unknown_codes": unknown_codes, "order": order}
+
+
+def _first_match(options, text):
+    t = _canon(text or "")
+    best = None
+    for o in options:
+        co = _canon(o)
+        if co and co in t and (best is None or len(co) > len(_canon(best))):
+            best = o
+    return best
+
+
+def _hl_string(res, descr_fn=None):
+    """Stringa finale in HTML: aggiunti in verde, rimossi barrati in rosso."""
+    added = {a[0] for a in res["added"]}
+    removed = {r[0] for r in res["removed"]}
+    chips = []
+    for c in res["order"]:
+        if c in removed:
+            chips.append(f'<span style="background:#7f1d1d;color:#fecaca;padding:2px 8px;border-radius:6px;'
+                         f'text-decoration:line-through;margin:2px;display:inline-block">{c}</span>')
+        else:
+            chips.append(f'<span style="background:#1f2937;color:#fff;padding:2px 8px;border-radius:6px;'
+                         f'margin:2px;display:inline-block">{c}</span>')
+    for c in res["final"]:
+        if c in added:
+            chips.append(f'<span style="background:#166534;color:#bbf7d0;padding:2px 8px;border-radius:6px;'
+                         f'margin:2px;display:inline-block">+ {c}</span>')
+    return "".join(chips)
+
+
+# ---------------------------------------------------------
+# INTERFACCIA
+# ---------------------------------------------------------
+_RULE_FILES = {
+    "2": ("Serial Life (SL)", "must_have_SL.csv", "incompatibilita_SL.csv"),
+    "3": ("€7 / MY28 (E7)", "must_have_E7.csv", "incompatibilita_E7.csv"),
+}
+_EMISSIONI_OPT = ["Euro 6E", "Euro 3", "Euro 4", "Euro 5", "Euro 6.1", "Euro 6.4PL8", "Euro 7"]
+_ALIM_OPT = ["BEV", "ICE", "HYDROGEN"]
+_GAMMA_OPT = ["CAMPER", "RETAIL", "NET RV", "LIGHT", "LIGHT MT NET RV", "LIGHT AT NET RV", "HEAVY NET RV"]
+_MARCA_OPT = ["FIAT", "PCOV", "TOYOTA", "JUPITER", "OPEL", "PEUGEOT", "CITROEN", "IVECO", "TME"]
+_CLASSE_OPT = ["N1", "N2", "LCV"]
+
+
+def _sel(label, options, prefill, key):
+    opts = ["— non specificato —"] + options
+    idx = opts.index(prefill) if prefill in opts else 0
+    v = st.selectbox(label, opts, index=idx, key=f"{key}_{prefill}")
+    return None if v.startswith("—") else v
+
+
 with tab4:
     st.subheader("Verifica e Correzione Automatica dell'Ordine")
-    st.write("Incolla la lista di OPT desiderata: il sistema aggiunge i must-have mancanti (dove non ambigui) e rimuove le incompatibilità, generando una stringa pronta all'uso.")
+    st.write("Incolla la lista di OPT: il sistema aggiunge i must have mancanti e rimuove le incompatibilità, "
+             "valutando le condizioni (gamma, alimentazione, emissioni…) in base al veicolo.")
 
-    if not rules_ready:
-        st.error(f"⚠️ Errore nel caricamento dei file di regole (must have / incompatibilità): {rules_error}")
-        st.info("Verifica i nomi dei file: must_have_SL.csv, must_have_E7.csv, incompatibilita_SL.csv, incompatibilita_E7.csv (senza accenti, separatore ';').")
-    elif serie_sel is None:
-        st.warning("⚠️ Vai prima nel tab **Configuratore SINCOM & Plant** e seleziona la Serie (Serial Life / €7 o MY28): questa scelta determina quale set di regole (SL o E7) viene applicato qui.")
+    if serie_sel not in _RULE_FILES:
+        st.warning("⚠️ Vai prima nel tab **Configuratore SINCOM & Plant** e seleziona la Serie "
+                   "(Serial Life / €7 o MY28): determina quale set di regole viene applicato qui.")
     else:
-        serie_label_map = {"2": "Serial Life (SL)", "3": "€7 / MY28 (E7)"}
-        st.info(f"Set di regole attivo: **{serie_label_map.get(serie_sel, serie_sel)}** — coerente con la Serie scelta nel tab Configuratore.")
+        set_label, mh_file, inc_file = _RULE_FILES[serie_sel]
+        missing = [f for f in (mh_file, inc_file) if not os.path.exists(f)]
+        if missing:
+            st.error(f"⚠️ File di regole non trovati nella repository: {', '.join(missing)}")
+        else:
+            mh = _load_rules_cached(mh_file, "must", os.path.getmtime(mh_file))
+            ic = _load_rules_cached(inc_file, "inc", os.path.getmtime(inc_file))
+            st.info(f"Set di regole attivo: **{set_label}** — {len(mh['rules'])} regole must have, "
+                    f"{len(ic['rules'])} regole di incompatibilità.")
 
-        must_have_dict = MUST_HAVE[serie_sel]
-        incompat_dict = INCOMPAT[serie_sel]
+            bad = mh["problems"] + ic["problems"]
+            if bad or mh["fixes"] or ic["fixes"]:
+                with st.expander(f"🧪 Controllo file regole ({len(bad)} righe da correggere, "
+                                 f"{len(mh['fixes']) + len(ic['fixes'])} correzioni automatiche)",
+                                 expanded=bool(bad)):
+                    for name, d in ((mh_file, mh), (inc_file, ic)):
+                        for n, txt, why in d["problems"]:
+                            st.markdown(f"- ❌ **{name}** riga {n}: {why} — `{txt}` _(riga ignorata)_")
+                        for n, code, why in d["fixes"]:
+                            st.markdown(f"- 🔧 **{name}** OPT {code} (riga {n}): {why}")
 
-        order_input = st.text_area(
-            "Incolla qui la stringa o la lista dei codici OPT dell'ordine:",
-            height=130,
-            placeholder="Esempio: 129, 901, 070, 213",
-            key="order_check_area"
-        )
+            # ---- caratteristiche del veicolo (precompilate dal Configuratore dove possibile)
+            ss = st.session_state
+            sinc = globals().get("sincom_from_tab1") or ""
+            modello_pre = sinc.split(".")[0] if sinc else ""
+            lung_m = _re.search(r"\bL\d\b", str(ss.get("cfg_lunghezza", "")).upper())
+            alt_m = _re.search(r"\bH\d\b", str(ss.get("cfg_altezza", "")).upper())
+            alim_txt = str(ss.get("cfg_motore", ""))
+            alim_pre = (_first_match(_ALIM_OPT, alim_txt)
+                        or ("BEV" if "ELETTR" in alim_txt.upper() else None)
+                        or ("HYDROGEN" if "IDROGEN" in alim_txt.upper() else None)
+                        or ("ICE" if alim_txt else None))
+            with st.expander("🚐 Caratteristiche del veicolo (usate per valutare le CONDIZIONI delle regole)",
+                             expanded=True):
+                st.caption("I campi sono precompilati dal Configuratore dove possibile: correggili se serve. "
+                           "Una regola con condizione su un campo non specificato NON viene applicata "
+                           "e viene segnalata per verifica.")
+                c1, c2, c3, c4 = st.columns(4)
+                with c1:
+                    a_alim = _sel("Alimentazione", _ALIM_OPT, alim_pre, "v_alim")
+                    a_emis = _sel("Emissioni", _EMISSIONI_OPT,
+                                  _first_match(_EMISSIONI_OPT, ss.get("cfg_potenza", "")), "v_emis")
+                with c2:
+                    a_gamma = _sel("Gamma", _GAMMA_OPT, None, "v_gamma")
+                    a_marca = _sel("Marca", _MARCA_OPT,
+                                   _first_match(_MARCA_OPT, ss.get("cfg_marca", "")), "v_marca")
+                with c3:
+                    a_body = st.text_input("Body", value=str(ss.get("cfg_body", "")), key=f"v_body_{ss.get('cfg_body','')}")
+                    a_mod = st.text_input("Modello", value=modello_pre, key=f"v_mod_{modello_pre}")
+                with c4:
+                    a_lung = st.text_input("Lunghezza", value=lung_m.group(0) if lung_m else "", key=f"v_lung_{lung_m and lung_m.group(0)}")
+                    a_alt = st.text_input("Altezza", value=alt_m.group(0) if alt_m else "", key=f"v_alt_{alt_m and alt_m.group(0)}")
+                c5, c6 = st.columns(2)
+                with c5:
+                    a_peso = st.text_input("Peso (q o kg)", value=str(ss.get("cfg_peso", "")), key=f"v_peso_{ss.get('cfg_peso','')}")
+                with c6:
+                    a_cl = _sel("Classe", _CLASSE_OPT, None, "v_classe")
 
-        check_button = st.button("Verifica e Correggi Ordine", type="primary", key="order_check_button")
+            attrs = {"ALIMENTAZIONE": a_alim, "EMISSIONI": a_emis, "GAMMA": a_gamma, "MARCA": a_marca,
+                     "BODY": a_body.strip() or None, "MODELLO": a_mod.strip() or None,
+                     "LUNGHEZZA": a_lung.strip() or None, "ALTEZZA": a_alt.strip() or None,
+                     "PESO": a_peso.strip() or None, "CLASSE": a_cl}
 
-        if check_button:
-            if not order_input.strip():
-                st.error("Nessun codice inserito nel box di testo.")
-            else:
-                raw_codes = order_input.replace(",", " ").replace(";", " ").split()
-                vehicle_codes = [norm_code(c) for c in raw_codes if c.strip()]
+            order_input = st.text_area("Incolla qui la stringa o la lista dei codici OPT dell'ordine:",
+                                       height=130, placeholder="Esempio: 129, 901, 070, 213",
+                                       key="order_check_area")
+            if st.button("Verifica e Correggi Ordine", type="primary", key="order_check_button"):
+                codes = [c.strip().upper() for c in _re.split(r"[,;\s]+", order_input) if c.strip()]
+                bad_codes = [c for c in codes if not _CODE.match(c)]
+                codes = [c for c in codes if _CODE.match(c)]
+                if not codes:
+                    st.error("Nessun codice OPT valido inserito nel box di testo.")
+                else:
+                    if bad_codes:
+                        st.warning("Token ignorati (non sono codici OPT di 3 caratteri): " + ", ".join(bad_codes))
+                    res = verify_order(codes, mh["rules"], ic["rules"], mh["known"], ic["known"], attrs)
+                    final = res["final"]
 
-                final_codes, report = analyze_order(vehicle_codes, must_have_dict, incompat_dict)
-
-                st.markdown("---")
-                st.markdown(
-                    f"""
-                    <div class="hero-card" style="border-top: 5px solid #21c35a;">
+                    st.markdown("---")
+                    st.markdown(
+                        f"""<div class="hero-card" style="border-top: 5px solid #21c35a;">
                         <span style="letter-spacing: 1px; color: #cbd5e1; font-weight: 500; font-size: 14px;">STRINGA OPT CORRETTA</span>
-                        <div style="font-size: 30px; font-weight: 800; color: #ffffff; margin: 14px 0; letter-spacing: 1px; word-break: break-word;">{', '.join(final_codes) if final_codes else '—'}</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-                st.text_area("Copia la stringa corretta:", value=", ".join(final_codes), height=80, key="order_result_copy")
+                        <div style="font-size: 26px; font-weight: 800; color: #ffffff; margin: 14px 0; letter-spacing: 1px; word-break: break-word;">{', '.join(final) if final else '—'}</div>
+                        </div>""", unsafe_allow_html=True)
+                    st.markdown("**Confronto con l'ordine inserito** — "
+                                "<span style='color:#86efac'>verde = aggiunto (must have)</span>, "
+                                "<span style='color:#fca5a5'>rosso barrato = rimosso (incompatibilità)</span>",
+                                unsafe_allow_html=True)
+                    st.markdown(_hl_string(res), unsafe_allow_html=True)
+                    st.text_area("Copia la stringa corretta:", value=", ".join(final), height=80,
+                                 key="order_result_copy")
 
-                st.markdown("### 📋 Analisi Codice per Codice")
-
-                if report["must_have_added"]:
-                    with st.expander(f"➕ Must Have aggiunti automaticamente ({len(report['must_have_added'])})", expanded=True):
-                        for code, added in report["must_have_added"]:
-                            st.markdown(f"- **{code}** → aggiunti: `{', '.join(added)}`")
-
-                if report["must_have_choice_needed"]:
-                    with st.expander(f"❓ Must Have con alternative — scelta manuale richiesta ({len(report['must_have_choice_needed'])})", expanded=True):
-                        for code, groups in report["must_have_choice_needed"]:
-                            alt_text = "  oppure  ".join(f"[{' + '.join(g)}]" for g in groups)
-                            st.markdown(f"- **{code}** richiede una tra: {alt_text}")
-
-                if report["incompat_conflicts"]:
-                    with st.expander(f"🚫 Incompatibilità rimosse automaticamente ({len(report['incompat_conflicts'])})", expanded=True):
-                        for removed_code, kept_code in report["incompat_conflicts"]:
-                            st.markdown(f"- **{removed_code}** rimosso perché incompatibile con **{kept_code}** (già presente/prioritario)")
-
-                if report["must_have_manual"] or report["incompat_manual"]:
-                    with st.expander(f"🔎 Regole con condizioni particolari — verifica manuale ({len(report['must_have_manual']) + len(report['incompat_manual'])})"):
-                        for code, raw in report["must_have_manual"]:
-                            st.markdown(f"- **{code}** (must have): _{raw}_")
-                        for code, raw in report["incompat_manual"]:
-                            st.markdown(f"- **{code}** (incompatibilità): _{raw}_")
-
-                unknown = sorted(set(report["must_have_unknown"]) | set(report["incompat_unknown"]))
-                if unknown:
-                    with st.expander(f"ℹ️ Codici non presenti nei file di regole ({len(unknown)})"):
-                        st.write(", ".join(unknown))
-
-                if report["must_have_ok"]:
-                    with st.expander(f"✔️ Must Have già soddisfatti ({len(report['must_have_ok'])})"):
-                        st.write(", ".join(report["must_have_ok"]))
-
-                if not any([report["must_have_added"], report["must_have_choice_needed"],
-                            report["incompat_conflicts"], report["must_have_manual"],
-                            report["incompat_manual"]]):
-                    st.success("Nessuna correzione automatica necessaria e nessuna condizione particolare da verificare manualmente.")
+                    st.markdown("### 📋 Dettaglio")
+                    if res["added"]:
+                        with st.expander(f"➕ Must have aggiunti ({len(res['added'])})", expanded=True):
+                            for m, by, ln in res["added"]:
+                                st.markdown(f"- **{m}** richiesto da **{by}** _(riga {ln} di {mh_file})_")
+                    if res["choices"]:
+                        with st.expander(f"❓ Alternative tra must have — scelta suggerita ({len(res['choices'])})", expanded=True):
+                            for c, alts, pick in res["choices"]:
+                                alt_txt = "  oppure  ".join("[" + " + ".join(a) + "]" for a in alts)
+                                st.markdown(f"- **{c}** richiede una tra: {alt_txt} → aggiunta la più vicina all'ordine: "
+                                            f"`{' + '.join(pick)}`. Se serve un'altra alternativa modifica l'ordine e riprova.")
+                    if res["removed"]:
+                        with st.expander(f"🚫 Incompatibilità rimosse ({len(res['removed'])})", expanded=True):
+                            for c, k, ln in res["removed"]:
+                                st.markdown(f"- **{c}** rimosso: incompatibile con **{k}** (inserito prima) _(riga {ln} di {inc_file})_")
+                    if res["blocked"]:
+                        with st.expander(f"⛔ Must have non aggiungibili per incompatibilità ({len(res['blocked'])})", expanded=True):
+                            for m, by, clash in res["blocked"]:
+                                st.markdown(f"- **{by}** richiede **{m}**, ma **{m}** è incompatibile con **{clash}**: "
+                                            f"l'ordine va rivisto a mano.")
+                    if res["must_warn"] or res["inc_warn"]:
+                        n = len(res["must_warn"]) + len(res["inc_warn"])
+                        with st.expander(f"🔎 Regole con condizione non valutabile — specifica le caratteristiche del veicolo ({n})"):
+                            for r in res["must_warn"]:
+                                st.markdown(f"- **{r['code']}** must have `{'|'.join('+'.join(a) for a in r['data'])}` "
+                                            f"se `{r['cond']}`")
+                            for x, y, r in res["inc_warn"]:
+                                st.markdown(f"- **{x}** e **{y}** potrebbero essere incompatibili se `{r['cond']}`")
+                    if res["unknown_codes"]:
+                        with st.expander(f"ℹ️ Codici non presenti nei file di regole ({len(res['unknown_codes'])})"):
+                            st.write(", ".join(res["unknown_codes"]))
+                    if res["ok"]:
+                        with st.expander(f"✔️ Must have già soddisfatti ({len(res['ok'])})"):
+                            st.write(", ".join(res["ok"]))
+                    if not (res["added"] or res["removed"] or res["choices"] or res["blocked"]
+                            or res["must_warn"] or res["inc_warn"]):
+                        st.success("Nessuna correzione necessaria.")
