@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import re
+import html
 
 # ---------------------------------------------------------
 # MOTORE DI REGOLE MUST HAVE / INCOMPATIBILITÀ
@@ -154,6 +155,133 @@ def analyze_order(vehicle_codes, must_have_dict, incompat_dict):
     return kept, report
 
 # ---------------------------------------------------------
+# TABELLONE OPT PER SINCOM (S = Serie, O = Optional, ND = Non disponibile)
+# ---------------------------------------------------------
+TABELLONE_FILENAME = "TABELLONE_OPT.csv"
+OPT_DESCR_FILENAME = "griglia_prodotto.csv"
+
+def normalize_sincom(text):
+    """Normalizza un SINCOM completo nella chiave 'MODELLO.ABn.SERIE.GUIDA.MERCATO'.
+
+    Accetta sia l'ordine del tabellone (serie.guida.mercato) sia quello generato dal
+    Configuratore (serie.mercato.guida): guida = 2 caratteri, mercato = 3 caratteri,
+    quindi i due campi si distinguono dalla lunghezza.
+    Tollera anche la forma con punto mancante tra guida e mercato (es. '02250').
+    Ritorna (chiave, errore): se la stringa non è interpretabile, chiave è None.
+    """
+    if text is None:
+        return None, "SINCOM vuoto."
+    raw = re.sub(r"\s+", "", str(text)).upper()
+    if not raw:
+        return None, "SINCOM vuoto."
+    tokens = [t for t in raw.split(".") if t != ""]
+
+    # forma con punto mancante: ultimo campo di 5 caratteri = guida (2) + mercato (3)
+    if len(tokens) == 4 and len(tokens[3]) == 5:
+        tokens = tokens[:3] + [tokens[3][:2], tokens[3][2:]]
+
+    if len(tokens) != 5:
+        return None, (
+            "Formato non riconosciuto: attesi 5 campi separati da punto "
+            "(modello.ABn.serie.guida.mercato, es. 290.ALD.2.01.000)."
+        )
+    modello, abn, serie, t4, t5 = tokens
+    if len(modello) != 3 or len(abn) != 3:
+        return None, "Modello e sigla ABn devono essere di 3 caratteri ciascuno."
+
+    campi = [t4, t5]
+    guida = next((t for t in campi if len(t) == 2), None)
+    mercato = next((t for t in campi if len(t) == 3), None)
+    if guida is None or mercato is None:
+        return None, "Guida (2 cifre, es. 01) e mercato (3 cifre, es. 000) non riconosciuti."
+    return f"{modello}.{abn}.{serie}.{guida}.{mercato}", None
+
+def build_tabellone(df):
+    """Da DataFrame grezzo del tabellone a (DataFrame indicizzato per SINCOM normalizzato, avvisi)."""
+    avvisi = []
+    df = df.copy()
+    df.columns = [str(c).strip().rstrip(".").upper() for c in df.columns]
+    if "SINCOM" not in df.columns:
+        raise ValueError("Colonna 'SINCOM' non trovata nel tabellone.")
+
+    dup_cols = [c for c in df.columns[df.columns.duplicated()].unique()]
+    if dup_cols:
+        avvisi.append(f"Colonne OPT duplicate nel tabellone (tenuta la prima): {', '.join(dup_cols)}")
+        df = df.loc[:, ~df.columns.duplicated()]
+
+    keys, bad_rows = [], []
+    for raw in df["SINCOM"]:
+        key, err = normalize_sincom(raw)
+        keys.append(key)
+        if key is None:
+            bad_rows.append(str(raw))
+    df["_KEY"] = keys
+    if bad_rows:
+        avvisi.append(f"{len(bad_rows)} righe con SINCOM non interpretabile ignorate: {', '.join(bad_rows[:5])}")
+        df = df[df["_KEY"].notna()]
+
+    dup_rows = df["_KEY"].duplicated().sum()
+    if dup_rows:
+        avvisi.append(f"{dup_rows} righe con SINCOM duplicato: tenuta la prima occorrenza.")
+        df = df.drop_duplicates(subset="_KEY", keep="first")
+
+    df = df.set_index("_KEY").drop(columns=["SINCOM"])
+    df.columns = [norm_code(c) for c in df.columns]
+    df = df.apply(lambda col: col.astype("string").str.strip().str.upper())
+    return df, avvisi
+
+@st.cache_data(show_spinner=False)
+def load_tabellone(path, mtime):
+    """Carica il tabellone (mtime serve solo a invalidare la cache se il file cambia)."""
+    try:
+        raw = pd.read_csv(path, sep=";", dtype=str, encoding="utf-8")
+    except UnicodeDecodeError:
+        raw = pd.read_csv(path, sep=";", dtype=str, encoding="latin-1")
+    return build_tabellone(raw)
+
+@st.cache_data(show_spinner=False)
+def load_opt_descriptions(path, mtime):
+    """Dizionario codice -> descrizione italiana, dal file griglia_prodotto.csv."""
+    raw = pd.read_csv(path, header=None, sep=";", dtype=str, encoding="utf-8", engine="python")
+    raw = raw.rename(columns={0: "descr_it", 1: "descr_en", 2: "code"})
+    raw["code"] = raw["code"].apply(norm_code)
+    raw["descr_it"] = raw["descr_it"].astype(str).str.strip()
+    raw = raw.drop_duplicates(subset=["code"])
+    return dict(zip(raw["code"], raw["descr_it"]))
+
+def split_availability(row):
+    """Divide una riga del tabellone in liste ordinate di codici S / O / ND (+ valori anomali)."""
+    out = {"S": [], "O": [], "ND": [], "ALTRO": []}
+    for code, val in row.items():
+        v = "" if pd.isna(val) else str(val)
+        out[v if v in ("S", "O", "ND") else "ALTRO"].append(code)
+    for k in out:
+        out[k].sort()
+    return out
+
+def render_opt_column(title, color, codes, descr, filtro):
+    """HTML di una colonna (card colorata con elenco scorrevole di codice + descrizione)."""
+    items = []
+    for c in codes:
+        d = descr.get(c, "")
+        if filtro and filtro not in c.lower() and filtro not in d.lower():
+            continue
+        d_html = html.escape(d) if d else "<i>descrizione non presente in griglia</i>"
+        items.append(
+            f"<div style='padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.08); font-size:13px; color:#e2e8f0;'>"
+            f"<b style='color:{color}; font-size:14px;'>{html.escape(c)}</b> — {d_html}</div>"
+        )
+    body = "".join(items) if items else "<div style='color:#94a3b8; font-size:13px; padding:8px 0;'>Nessun codice</div>"
+    return (
+        f"<div style='background: rgba(255,255,255,0.05); border:1px solid {color}; "
+        f"border-top:5px solid {color}; border-radius:14px; padding:16px 18px;'>"
+        f"<div style='font-size:18px; font-weight:800; color:{color};'>{title} "
+        f"<span style='font-size:14px; font-weight:600; color:#cbd5e1;'>({len(items)})</span></div>"
+        f"<div style='max-height:620px; overflow-y:auto; margin-top:10px; padding-right:6px;'>{body}</div>"
+        f"</div>"
+    )
+
+# ---------------------------------------------------------
 # CONFIGURAZIONE PAGINA & GRAFICA AVANZATA
 # ---------------------------------------------------------
 st.set_page_config(
@@ -291,11 +419,14 @@ except Exception as e:
 
 # Valore di default per evitare NameError se il Tab 1 non ha ancora girato/fallito
 serie_sel = None
+# SINCOM completo generato nel Tab 1 (serve a precompilare il campo del Tab 3)
+sincom_from_tab1 = None
 
 # Definizione dei Tab principali
-tab1, tab2, tab3 = st.tabs([
+tab1, tab2, tab3, tab4 = st.tabs([
     "🎛️ Configuratore SINCOM & Plant",
     "🔬 Checker OPT Avanzato",
+    "📊 Verifica OPT in base a SINCOM",
     "✅ Verifica Ordine (Must Have & Incompatibilità)",
 ])
 
@@ -423,7 +554,8 @@ with tab1:
                 sincom_completo = f"{codice_modello}.{sincom_generato}.{serie_sel}.{mercato_sel}.{guida_sel}"
             else:
                 sincom_completo = None
-            
+            sincom_from_tab1 = sincom_completo
+
             producibile_sevel = False
             producibile_gliwice = False
             codice_mappato = False
@@ -508,8 +640,7 @@ with tab1:
                 
             # Preview della feature futura per la Griglia OPT di serie/optional
             st.markdown("---")
-            with st.expander("🔮 Matrice dotazioni di serie ed esclusioni OPT (Roadmap)"):
-                st.info(f"Logica pronta per l'aggancio: il codice {sincom_generato} interrogherà la griglia prodotto per estrarre la lista degli OPT standard e i pacchetti ordinabili associati a questa specifica combinazione.")
+            st.info("📊 Per vedere gli OPT di serie, optional e non disponibili di questa configurazione apri il tab **Verifica OPT in base a SINCOM**: il campo viene precompilato con il codice SINCOM completo generato qui sopra.")
         else:
             st.error("Combinazione incompleta. Assicurati che tutti i menù a tendina abbiano un valore valido selezionato.")
 
@@ -630,9 +761,98 @@ with tab2:
             st.text_area("Copia questo testo per i tuoi log o per le comunicazioni di stabilimento:", value="\n".join(output_lines), height=200)
 
 # =========================================================
-# TAB 3: VERIFICA ORDINE (MUST HAVE & INCOMPATIBILITÀ)
+# TAB 3: VERIFICA OPT IN BASE A SINCOM (S / O / ND)
 # =========================================================
 with tab3:
+    st.subheader("Verifica OPT in base a SINCOM")
+    st.write("Inserisci il codice SINCOM completo: il sistema mostra quali OPT sono di serie (S), quali sono optional selezionabili (O) e quali non sono disponibili (ND).")
+
+    df_tab, tab_avvisi, tab_ok = None, [], False
+    if not os.path.exists(TABELLONE_FILENAME):
+        st.error(f"⚠️ File '{TABELLONE_FILENAME}' non rilevato nella repository corrente.")
+    else:
+        try:
+            df_tab, tab_avvisi = load_tabellone(TABELLONE_FILENAME, os.path.getmtime(TABELLONE_FILENAME))
+            tab_ok = True
+        except Exception as e:
+            st.error(f"⚠️ Errore nel caricamento di '{TABELLONE_FILENAME}': {e}")
+
+    opt_descr = {}
+    if tab_ok:
+        if os.path.exists(OPT_DESCR_FILENAME):
+            try:
+                opt_descr = load_opt_descriptions(OPT_DESCR_FILENAME, os.path.getmtime(OPT_DESCR_FILENAME))
+            except Exception as e:
+                st.warning(f"Descrizioni OPT non caricate ('{OPT_DESCR_FILENAME}'): {e}. Verranno mostrati solo i codici.")
+        else:
+            st.warning(f"File '{OPT_DESCR_FILENAME}' non rilevato: verranno mostrati solo i codici, senza descrizione.")
+
+        if tab_avvisi:
+            with st.expander(f"ℹ️ Avvisi sul tabellone ({len(tab_avvisi)})"):
+                for a in tab_avvisi:
+                    st.markdown(f"- {a}")
+
+        sincom_input = st.text_input(
+            "Codice SINCOM completo:",
+            value=sincom_from_tab1 or "",
+            placeholder="Esempio: 290.ALD.2.01.000",
+        )
+        filtro_opt = st.text_input(
+            "Filtra per codice o descrizione (opzionale):",
+            placeholder="Esempio: ruote, 0R2, radio",
+        ).strip().lower()
+
+        if sincom_input.strip():
+            sincom_key, sincom_err = normalize_sincom(sincom_input)
+            if sincom_err:
+                st.error(f"⚠️ {sincom_err}")
+            elif sincom_key not in df_tab.index:
+                st.warning(f"Il SINCOM **{sincom_key}** non è presente nel tabellone OPT.")
+                serie_presenti = sorted({k.split(".")[2] for k in df_tab.index})
+                st.caption(f"Serie presenti nel tabellone: {', '.join(serie_presenti)}.")
+                prefisso = ".".join(sincom_key.split(".")[:2]) + "."
+                simili = [k for k in df_tab.index if k.startswith(prefisso)]
+                if simili:
+                    st.info("Varianti disponibili per lo stesso modello e sigla ABn:\n\n" + "\n".join(f"- `{k}`" for k in simili[:20]))
+                else:
+                    st.info("Nessuna variante con questo modello e sigla ABn nel tabellone.")
+            else:
+                avail = split_availability(df_tab.loc[sincom_key])
+
+                st.markdown("---")
+                st.markdown(f"##### SINCOM analizzato: `{sincom_key}`")
+                st.markdown("**Per il SINCOM da te inserito la disponibilità dei codici opt è la seguente:**")
+
+                col_s, col_o, col_nd = st.columns(3)
+                with col_s:
+                    st.markdown(render_opt_column("Serie", "#21c35a", avail["S"], opt_descr, filtro_opt), unsafe_allow_html=True)
+                with col_o:
+                    st.markdown(render_opt_column("Optional", "#4f7bd6", avail["O"], opt_descr, filtro_opt), unsafe_allow_html=True)
+                with col_nd:
+                    st.markdown(render_opt_column("Non disponibile", "#ff4b4b", avail["ND"], opt_descr, filtro_opt), unsafe_allow_html=True)
+
+                if avail["ALTRO"]:
+                    with st.expander(f"⚠️ Codici con valore non riconosciuto nel tabellone ({len(avail['ALTRO'])})"):
+                        st.write(", ".join(avail["ALTRO"]))
+
+                report_lines = [f"--- DISPONIBILITÀ OPT PER SINCOM {sincom_key} ---"]
+                for label, key_av in (("SERIE", "S"), ("OPTIONAL", "O"), ("NON DISPONIBILE", "ND")):
+                    report_lines.append(f"\n[{label}] ({len(avail[key_av])})")
+                    for c in avail[key_av]:
+                        report_lines.append(f"{c} - {opt_descr.get(c, '(descrizione non in griglia)')}")
+
+                st.markdown("---")
+                st.subheader("📋 Output pronto da Copiare / Incollare")
+                st.text_area(
+                    "Copia questo testo per i tuoi log o per le comunicazioni di stabilimento:",
+                    value="\n".join(report_lines),
+                    height=220,
+                )
+
+# =========================================================
+# TAB 4: VERIFICA ORDINE (MUST HAVE & INCOMPATIBILITÀ)
+# =========================================================
+with tab4:
     st.subheader("Verifica e Correzione Automatica dell'Ordine")
     st.write("Incolla la lista di OPT desiderata: il sistema aggiunge i must-have mancanti (dove non ambigui) e rimuove le incompatibilità, generando una stringa pronta all'uso.")
 
