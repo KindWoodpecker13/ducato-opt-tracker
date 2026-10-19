@@ -11,7 +11,7 @@ def norm_code(c):
 # TABELLONE OPT PER SINCOM (S = Serie, O = Optional, ND = Non disponibile)
 # ---------------------------------------------------------
 TABELLONI = {
-    "Sevel": "TABELLONE_OPT.csv",
+    "Sevel": "TABELLONE_OPT_SEVEL.csv",
     "Gliwice": "TABELLONE_OPT_GLIWICE.csv",
 }
 OPT_DESCR_FILENAME = "griglia_prodotto.csv"
@@ -608,7 +608,7 @@ with tab3:
             plant_default = _plants.index("Gliwice")
     plant_sel = st.radio("Plant / Tabellone di riferimento:", _plants, index=plant_default,
                          horizontal=True, key="tab3_plant",
-                         help="Sevel: TABELLONE_OPT.csv — Gliwice: TABELLONE_OPT_GLIWICE.csv")
+                         help="Sevel: TABELLONE_OPT_SEVEL.csv — Gliwice: TABELLONE_OPT_GLIWICE.csv")
     TABELLONE_FILE = TABELLONI[plant_sel]
 
     df_tab, tab_avvisi, tab_ok = None, [], False
