@@ -10,7 +10,10 @@ def norm_code(c):
 # ---------------------------------------------------------
 # TABELLONE OPT PER SINCOM (S = Serie, O = Optional, ND = Non disponibile)
 # ---------------------------------------------------------
-TABELLONE_FILENAME = "TABELLONE_OPT_SEVEL.csv"
+TABELLONI = {
+    "Sevel": "TABELLONE_OPT.csv",
+    "Gliwice": "TABELLONE_OPT_GLIWICE.csv",
+}
 OPT_DESCR_FILENAME = "griglia_prodotto.csv"
 
 def normalize_sincom(text):
@@ -28,6 +31,10 @@ def normalize_sincom(text):
     if not raw:
         return None, "SINCOM vuoto."
     tokens = [t for t in raw.split(".") if t != ""]
+
+    # forma con punto mancante tra modello e ABn: primo campo di 6 caratteri (es. 298AGU)
+    if len(tokens) == 4 and len(tokens[0]) == 6:
+        tokens = [tokens[0][:3], tokens[0][3:]] + tokens[1:]
 
     # forma con punto mancante: ultimo campo di 5 caratteri = guida (2) + mercato (3)
     if len(tokens) == 4 and len(tokens[3]) == 5:
@@ -593,15 +600,26 @@ with tab3:
     st.subheader("Verifica OPT in base a SINCOM")
     st.write("Inserisci il codice SINCOM completo: il sistema mostra quali OPT sono di serie (S), quali sono optional selezionabili (O) e quali non sono disponibili (ND).")
 
+    # --- scelta del plant (ogni plant ha il proprio tabellone: lo stesso SINCOM può avere disponibilità diverse)
+    plant_default = 0
+    _plants = list(TABELLONI.keys())
+    if sincom_from_tab1:
+        if globals().get("producibile_gliwice") and not globals().get("producibile_sevel") and "Gliwice" in _plants:
+            plant_default = _plants.index("Gliwice")
+    plant_sel = st.radio("Plant / Tabellone di riferimento:", _plants, index=plant_default,
+                         horizontal=True, key="tab3_plant",
+                         help="Sevel: TABELLONE_OPT.csv — Gliwice: TABELLONE_OPT_GLIWICE.csv")
+    TABELLONE_FILE = TABELLONI[plant_sel]
+
     df_tab, tab_avvisi, tab_ok = None, [], False
-    if not os.path.exists(TABELLONE_FILENAME):
-        st.error(f"⚠️ File '{TABELLONE_FILENAME}' non rilevato nella repository corrente.")
+    if not os.path.exists(TABELLONE_FILE):
+        st.error(f"⚠️ File '{TABELLONE_FILE}' non rilevato nella repository corrente.")
     else:
         try:
-            df_tab, tab_avvisi = load_tabellone(TABELLONE_FILENAME, os.path.getmtime(TABELLONE_FILENAME))
+            df_tab, tab_avvisi = load_tabellone(TABELLONE_FILE, os.path.getmtime(TABELLONE_FILE))
             tab_ok = True
         except Exception as e:
-            st.error(f"⚠️ Errore nel caricamento di '{TABELLONE_FILENAME}': {e}")
+            st.error(f"⚠️ Errore nel caricamento di '{TABELLONE_FILE}': {e}")
 
     opt_descr = {}
     if tab_ok:
@@ -633,7 +651,16 @@ with tab3:
             if sincom_err:
                 st.error(f"⚠️ {sincom_err}")
             elif sincom_key not in df_tab.index:
-                st.warning(f"Il SINCOM **{sincom_key}** non è presente nel tabellone OPT.")
+                st.warning(f"Il SINCOM **{sincom_key}** non è presente nel tabellone OPT di **{plant_sel}**.")
+                # presente nell'altro plant?
+                for _p, _f in TABELLONI.items():
+                    if _p != plant_sel and os.path.exists(_f):
+                        try:
+                            _df2, _ = load_tabellone(_f, os.path.getmtime(_f))
+                            if sincom_key in _df2.index:
+                                st.info(f"Questo SINCOM è presente nel tabellone **{_p}**: selezionalo nel riquadro 'Plant' qui sopra.")
+                        except Exception:
+                            pass
                 serie_presenti = sorted({k.split(".")[2] for k in df_tab.index})
                 st.caption(f"Serie presenti nel tabellone: {', '.join(serie_presenti)}.")
                 prefisso = ".".join(sincom_key.split(".")[:2]) + "."
@@ -646,7 +673,7 @@ with tab3:
                 avail = split_availability(df_tab.loc[sincom_key])
 
                 st.markdown("---")
-                st.markdown(f"##### SINCOM analizzato: `{sincom_key}`")
+                st.markdown(f"##### SINCOM analizzato: `{sincom_key}` — Plant: **{plant_sel}**")
                 st.markdown("**Per il SINCOM da te inserito la disponibilità dei codici opt è la seguente:**")
 
                 col_s, col_o, col_nd = st.columns(3)
@@ -661,7 +688,7 @@ with tab3:
                     with st.expander(f"⚠️ Codici con valore non riconosciuto nel tabellone ({len(avail['ALTRO'])})"):
                         st.write(", ".join(avail["ALTRO"]))
 
-                report_lines = [f"--- DISPONIBILITÀ OPT PER SINCOM {sincom_key} ---"]
+                report_lines = [f"--- DISPONIBILITÀ OPT PER SINCOM {sincom_key} (PLANT {plant_sel.upper()}) ---"]
                 for label, key_av in (("SERIE", "S"), ("OPTIONAL", "O"), ("NON DISPONIBILE", "ND")):
                     report_lines.append(f"\n[{label}] ({len(avail[key_av])})")
                     for c in avail[key_av]:
