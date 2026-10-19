@@ -10,7 +10,7 @@ def norm_code(c):
 # ---------------------------------------------------------
 # TABELLONE OPT PER SINCOM (S = Serie, O = Optional, ND = Non disponibile)
 # ---------------------------------------------------------
-TABELLONE_FILENAME = "TABELLONE_OPT.csv"
+TABELLONE_FILENAME = "TABELLONE_OPT_SEVEL.csv"
 OPT_DESCR_FILENAME = "griglia_prodotto.csv"
 
 def normalize_sincom(text):
