@@ -244,6 +244,78 @@ st.markdown(
 )
 
 # ---------------------------------------------------------
+# AUTENTICAZIONE (schermata iniziale di accesso)
+# ---------------------------------------------------------
+# Gli utenti NON sono scritti nel codice: stanno nei "Secrets" di Streamlit (vedi README_autenticazione.txt),
+# come   [users]  nome.cognome = "pbkdf2$<iterazioni>$<salt>$<hash>"   (password mai in chiaro).
+import hashlib as _hashlib
+import hmac as _hmac
+import time as _time
+
+def _verify_password(password, stored):
+    try:
+        scheme, iters, salt, digest = str(stored).split("$")
+        if scheme != "pbkdf2":
+            return False
+        calc = _hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), bytes.fromhex(salt), int(iters)).hex()
+        return _hmac.compare_digest(calc, digest)
+    except Exception:
+        return False
+
+def _load_users():
+    try:
+        return {str(k).strip().lower(): v for k, v in dict(st.secrets["users"]).items()}
+    except Exception:
+        return {}
+
+def require_login():
+    """Mostra la schermata di accesso e blocca l'app finché l'utente non è autenticato."""
+    if st.session_state.get("auth_user"):
+        with st.sidebar:
+            st.caption(f"👤 Utente: **{st.session_state['auth_user']}**")
+            if st.button("Esci (logout)", key="logout_btn"):
+                for k in ("auth_user", "auth_fails", "auth_lock_until"):
+                    st.session_state.pop(k, None)
+                st.rerun()
+        return
+
+    users = _load_users()
+    st.title("Ducato ITPL Toolbox 🚐")
+    st.markdown("### 🔐 Accesso riservato")
+    if not users:
+        st.error("Accesso non configurato: nessun utente definito nei Secrets dell'applicazione. "
+                 "Contatta l'amministratore.")
+        st.stop()
+
+    lock_until = st.session_state.get("auth_lock_until", 0)
+    wait = int(lock_until - _time.time())
+    if wait > 0:
+        st.error(f"Troppi tentativi errati. Riprova tra {wait} secondi.")
+        st.stop()
+
+    with st.form("login_form"):
+        u = st.text_input("Utente")
+        p = st.text_input("Password", type="password")
+        ok = st.form_submit_button("Accedi", type="primary")
+    if ok:
+        stored = users.get(u.strip().lower())
+        # si esegue sempre un confronto, anche con utente inesistente (stesso tempo di risposta)
+        valid = _verify_password(p, stored if stored else "pbkdf2$1$00$00")
+        if stored and valid:
+            st.session_state["auth_user"] = u.strip()
+            st.session_state["auth_fails"] = 0
+            st.rerun()
+        fails = st.session_state.get("auth_fails", 0) + 1
+        st.session_state["auth_fails"] = fails
+        if fails >= 5:
+            st.session_state["auth_lock_until"] = _time.time() + 60 * min(fails - 4, 10)
+        _time.sleep(1)
+        st.error("Utente o password non corretti.")
+    st.stop()
+
+require_login()
+
+# ---------------------------------------------------------
 # HEADER DELL'APPLICAZIONE
 # ---------------------------------------------------------
 st.title("Ducato ITPL Toolbox 🚐")
