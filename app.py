@@ -253,8 +253,12 @@ import hmac as _hmac
 import time as _time
 
 def _verify_password(password, stored):
+    stored = str(stored)
+    if not stored.startswith("pbkdf2$"):
+        # password in chiaro nei Secrets (meno sicuro dell'hash, ma accettato)
+        return _hmac.compare_digest(password.encode("utf-8"), stored.encode("utf-8"))
     try:
-        scheme, iters, salt, digest = str(stored).split("$")
+        scheme, iters, salt, digest = stored.split("$")
         if scheme != "pbkdf2":
             return False
         calc = _hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), bytes.fromhex(salt), int(iters)).hex()
@@ -300,7 +304,7 @@ def require_login():
     if ok:
         stored = users.get(u.strip().lower())
         # si esegue sempre un confronto, anche con utente inesistente (stesso tempo di risposta)
-        valid = _verify_password(p, stored if stored else "pbkdf2$1$00$00")
+        valid = _verify_password(p, stored if stored else "pbkdf2$1$00$00") and bool(p)
         if stored and valid:
             st.session_state["auth_user"] = u.strip()
             st.session_state["auth_fails"] = 0
